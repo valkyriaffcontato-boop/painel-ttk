@@ -3,67 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTK BRASIL | Guild Management</title>
+    <title>TTK BRASIL | Painel de Gestão Profissional</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .gold-gradient { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); }
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Inter:wght@400;600&display=swap');
+        
+        :root {
+            --primary: #fbbf24;
+            --bg-dark: #0b0f1a;
+            --card-bg: #161b2c;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-dark); 
+            color: #e2e8f0; 
+        }
+
+        h1, h2, .rank-font { font-family: 'Rajdhani', sans-serif; }
+
+        .glass { 
+            background: var(--card-bg); 
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .gold-row { background: linear-gradient(90deg, rgba(251,191,36,0.1) 0%, transparent 100%); }
+        
+        /* Scrollbar estilizada */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0b0f1a; }
+        ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-2 md:p-8">
 
     <div class="max-w-6xl mx-auto">
         <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-            <div>
-                <h1 class="text-3xl font-bold tracking-tighter text-white">TTK <span class="text-amber-500">BRASIL</span></h1>
-                <p class="text-slate-400">Painel de Controle da Guilda</p>
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
+            <div class="text-center md:text-left">
+                <h1 class="text-4xl font-bold tracking-widest text-white uppercase">TTK <span class="text-amber-500">BRASIL</span></h1>
+                <p class="text-slate-500 font-medium tracking-wider">SISTEMA DE GERENCIAMENTO DE ELITE</p>
             </div>
-            <div class="flex gap-3">
-                <button onclick="openModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2 px-6 rounded-lg transition-all flex items-center gap-2">
-                    <i class="fas fa-plus"></i> Novo Membro
+            
+            <div class="flex flex-wrap justify-center gap-3">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-3 text-slate-500"></i>
+                    <input type="text" id="searchInput" onkeyup="filterMembers()" placeholder="Buscar membro..." 
+                           class="bg-slate-800 border-none rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-amber-500 w-64">
+                </div>
+                <button onclick="openModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2 px-6 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20">
+                    <i class="fas fa-user-plus"></i> ADICIONAR
                 </button>
             </div>
         </header>
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div class="glass p-6 rounded-2xl">
-                <p class="text-slate-400 text-sm">Total de Membros</p>
-                <h3 id="stat-total" class="text-3xl font-bold">0/55</h3>
+        <!-- Status Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass p-5 rounded-xl text-center">
+                <p class="text-slate-500 text-xs uppercase font-bold mb-1">Membros</p>
+                <h3 id="stat-total" class="text-2xl font-bold text-white">0/55</h3>
             </div>
-            <div class="glass p-6 rounded-2xl border-l-4 border-amber-500">
-                <p class="text-slate-400 text-sm">Top Global (Semanal)</p>
-                <h3 id="stat-top" class="text-3xl font-bold text-amber-500">-</h3>
+            <div class="glass p-5 rounded-xl text-center border-b-2 border-amber-500">
+                <p class="text-slate-500 text-xs uppercase font-bold mb-1">Líder do Ranking</p>
+                <h3 id="stat-top" class="text-xl font-bold text-amber-500 truncate">-</h3>
             </div>
-            <div class="glass p-6 rounded-2xl">
-                <p class="text-slate-400 text-sm">Média de Pontos</p>
-                <h3 id="stat-avg" class="text-3xl font-bold">0</h3>
+            <div class="glass p-5 rounded-xl text-center">
+                <p class="text-slate-500 text-xs uppercase font-bold mb-1">Total Pontos</p>
+                <h3 id="stat-sum" class="text-2xl font-bold text-white">0</h3>
+            </div>
+            <div class="glass p-5 rounded-xl text-center">
+                <p class="text-slate-500 text-xs uppercase font-bold mb-1">Média/Membro</p>
+                <h3 id="stat-avg" class="text-2xl font-bold text-white">0</h3>
             </div>
         </div>
 
-        <!-- Ranking Table -->
-        <div class="glass rounded-2xl overflow-hidden">
-            <div class="p-6 border-b border-white/10 flex justify-between items-center">
-                <h2 class="text-xl font-semibold">Ranking de Pontuação</h2>
-                <span class="text-xs bg-slate-700 px-3 py-1 rounded-full text-slate-300">Atualizado em tempo real</span>
-            </div>
+        <!-- Tabela -->
+        <div class="glass rounded-2xl overflow-hidden border border-white/5">
             <div class="overflow-x-auto">
-                <table class="w-full text-left">
+                <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-white/5 text-slate-400 text-sm uppercase">
-                            <th class="p-4 font-medium">Pos</th>
-                            <th class="p-4 font-medium">Membro</th>
-                            <th class="p-4 font-medium">Pontuação</th>
-                            <th class="p-4 font-medium">Status</th>
-                            <th class="p-4 font-medium text-right">Ações</th>
+                        <tr class="bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider">
+                            <th class="p-4 font-bold">Rank</th>
+                            <th class="p-4 font-bold">Nickname</th>
+                            <th class="p-4 font-bold text-center">Pontuação Semanal</th>
+                            <th class="p-4 font-bold text-right">Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="member-table-body">
-                        <!-- Linhas geradas via JS -->
+                    <tbody id="member-table-body" class="divide-y divide-white/5">
+                        <!-- Gerado via JS -->
                     </tbody>
                 </table>
             </div>
@@ -71,136 +100,177 @@
     </div>
 
     <!-- Modal Form -->
-    <div id="modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center p-4 z-50">
-        <div class="glass max-w-md w-full p-8 rounded-2xl shadow-2xl">
-            <h2 id="modal-title" class="text-2xl font-bold mb-6 text-white">Adicionar Membro</h2>
+    <div id="modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div class="glass max-w-md w-full p-8 rounded-2xl">
+            <h2 id="modal-title" class="text-2xl font-bold mb-6 text-white uppercase tracking-tight">Editar Membro</h2>
             <form id="member-form" class="space-y-4">
                 <input type="hidden" id="member-id">
                 <div>
-                    <label class="block text-sm text-slate-400 mb-1">Nome do Jogador</label>
-                    <input type="text" id="name" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-amber-500">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nome no Jogo</label>
+                    <input type="text" id="name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-amber-500 text-white">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Pontos (Semana)</label>
-                        <input type="number" id="points" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-amber-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Status</label>
-                        <select id="status" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-amber-500">
-                            <option value="Online">Online</option>
-                            <option value="Offline">Offline</option>
-                            <option value="Em Partida">Em Partida</option>
-                        </select>
-                    </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pontos (Semana)</label>
+                    <input type="number" id="points" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-amber-500 text-white">
                 </div>
                 <div class="flex gap-3 mt-8">
-                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 rounded-lg hover:bg-white/5 transition">Cancelar</button>
-                    <button type="submit" class="flex-1 bg-amber-500 text-slate-900 font-bold py-3 rounded-lg hover:bg-amber-600 transition">Salvar</button>
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 rounded-lg text-slate-400 hover:bg-white/5 transition font-bold uppercase text-sm">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-amber-500 text-slate-900 font-bold py-3 rounded-lg hover:bg-amber-600 transition uppercase text-sm">Confirmar</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // Dados Iniciais (Baseados no seu print)
-        let members = JSON.parse(localStorage.getItem('ttk_members')) || [
-            { id: 1, name: "JR TRALHA", points: 5531, status: "Offline" },
-            { id: 2, name: "TTK ANGELLO", points: 4573, status: "Offline" },
-            { id: 3, name: "TTK Lirlex", points: 4499, status: "Em Partida" },
-            { id: 4, name: "Biel calvo (Líder)", points: 1024, status: "Online" }
+        // LISTA COMPLETA DOS 50 MEMBROS EXTRAÍDA DAS IMAGENS
+        const initialMembers = [
+            { id: 1, name: "JR TRALHA", points: 5531 },
+            { id: 2, name: "Quebrada133", points: 4670 },
+            { id: 3, name: "TTK ANGELLO", points: 4573 },
+            { id: 4, name: "TTK JOYCE", points: 4513 },
+            { id: 5, name: "TTK Lirlex", points: 4499 },
+            { id: 6, name: "Lm hugo", points: 3899 },
+            { id: 7, name: "TTK MTX9 444", points: 3792 },
+            { id: 8, name: "EL BOCHECHA", points: 3759 },
+            { id: 9, name: "CE Xavier!", points: 3113 },
+            { id: 10, name: "TTK CHADAL", points: 2777 },
+            { id: 11, name: "TTK dom_max", points: 2698 },
+            { id: 12, name: "(Mestre Icon/Sem nome)", points: 2483 },
+            { id: 13, name: "RYANZINNN", points: 2453 },
+            { id: 14, name: "egocentrismo", points: 2136 },
+            { id: 15, name: "cearazim", points: 1835 },
+            { id: 16, name: "TTK VELAX1", points: 1794 },
+            { id: 17, name: "TTK ALEX", points: 1666 },
+            { id: 18, name: "ヅ LUIS", points: 1663 },
+            { id: 19, name: "Erick xat", points: 1632 },
+            { id: 20, name: "pTKing", points: 1484 },
+            { id: 21, name: "SHARK1", points: 1139 },
+            { id: 22, name: "IGG SERRATH", points: 1120 },
+            { id: 23, name: "BICHA_MUDA", points: 1096 },
+            { id: 24, name: "BZ Vordex", points: 1065 },
+            { id: 25, name: "Biel calvo (Líder)", points: 1024 },
+            { id: 26, name: "TTK IM LEEX", points: 970 },
+            { id: 27, name: "L mami", points: 941 },
+            { id: 28, name: "Black.444", points: 910 },
+            { id: 29, name: "UMB Chipotle", points: 854 },
+            { id: 30, name: "K OROCHI", points: 776 },
+            { id: 31, name: "Ellucky", points: 715 },
+            { id: 32, name: "Tri evilex", points: 622 },
+            { id: 33, name: "DuallzE FF", points: 447 },
+            { id: 34, name: "Bizon xtd", points: 440 },
+            { id: 35, name: "100% m1014", points: 415 },
+            { id: 36, name: "(Ícone Vermelho)", points: 410 },
+            { id: 37, name: "f Tiago", points: 350 },
+            { id: 38, name: "ellow", points: 300 },
+            { id: 39, name: "tk(buteco)", points: 212 },
+            { id: 40, name: "MP KOLLUA", points: 195 },
+            { id: 41, name: "FX RAFA244", points: 130 },
+            { id: 42, name: "PM GANANCIA", points: 120 },
+            { id: 43, name: "XS AngelloTt", points: 100 },
+            { id: 44, name: "very p3dro", points: 50 },
+            { id: 45, name: "miss chapeuzinho", points: 0 },
+            { id: 46, name: "very Garcia", points: 0 },
+            { id: 47, name: "BZ nianaxy", points: 0 },
+            { id: 48, name: "aim hard", points: 0 },
+            { id: 49, name: "(Símbolos Japoneses)", points: 0 },
+            { id: 50, name: "BR Santos!", points: 0 }
         ];
 
-        const tableBody = document.getElementById('member-table-body');
-        const memberForm = document.getElementById('member-form');
-        const modal = document.getElementById('modal');
+        let members = JSON.parse(localStorage.getItem('ttk_guild_data')) || initialMembers;
 
-        function renderTable() {
-            // Ordenar por pontuação (maior para menor)
-            members.sort((a, b) => b.points - a.points);
+        function renderTable(data = members) {
+            const tableBody = document.getElementById('member-table-body');
+            // Ordenar por pontos sempre
+            data.sort((a, b) => b.points - a.points);
             
             tableBody.innerHTML = '';
-            members.forEach((m, index) => {
+            data.forEach((m, index) => {
+                const isTop = index < 3;
                 const row = document.createElement('tr');
-                row.className = "border-b border-white/5 hover:bg-white/5 transition";
+                row.className = `hover:bg-white/5 transition-colors ${isTop ? 'gold-row' : ''}`;
                 row.innerHTML = `
-                    <td class="p-4 font-bold text-slate-500">#${index + 1}</td>
-                    <td class="p-4 font-semibold text-white">${m.name}</td>
-                    <td class="p-4">
-                        <span class="bg-amber-500/10 text-amber-500 px-3 py-1 rounded-lg font-mono font-bold">${m.points}</span>
+                    <td class="p-4 font-bold rank-font text-lg ${isTop ? 'text-amber-500' : 'text-slate-500'}">
+                        #${index + 1}
                     </td>
-                    <td class="p-4 text-sm text-slate-400">
-                        <span class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full ${m.status === 'Online' ? 'bg-green-500' : 'bg-slate-600'}"></span>
-                            ${m.status}
+                    <td class="p-4">
+                        <div class="font-bold text-white">${m.name}</div>
+                        <div class="text-[10px] text-slate-500 uppercase tracking-tighter italic">Guild Member</div>
+                    </td>
+                    <td class="p-4 text-center">
+                        <span class="inline-block bg-slate-900 border border-white/10 px-4 py-1 rounded text-amber-500 font-mono font-bold">
+                            ${m.points.toLocaleString()}
                         </span>
                     </td>
                     <td class="p-4 text-right">
-                        <button onclick="editMember(${m.id})" class="text-slate-400 hover:text-white mx-2"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteMember(${m.id})" class="text-red-400 hover:text-red-300 mx-2"><i class="fas fa-trash"></i></button>
+                        <button onclick="editMember(${m.id})" class="p-2 text-slate-400 hover:text-amber-500 transition"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteMember(${m.id})" class="p-2 text-slate-400 hover:text-red-500 transition"><i class="fas fa-trash"></i></button>
                     </td>
                 `;
                 tableBody.appendChild(row);
             });
             updateStats();
-            localStorage.setItem('ttk_members', JSON.stringify(members));
+            localStorage.setItem('ttk_guild_data', JSON.stringify(members));
+        }
+
+        function filterMembers() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = members.filter(m => m.name.toLowerCase().includes(query));
+            renderTable(filtered);
         }
 
         function updateStats() {
-            document.getElementById('stat-total').innerText = `${members.length}/55`;
-            const top = members.length > 0 ? members[0].name : '-';
+            const total = members.length;
+            const sum = members.reduce((acc, m) => acc + parseInt(m.points), 0);
+            const top = members.length > 0 ? members.sort((a,b) => b.points - a.points)[0].name : '-';
+            
+            document.getElementById('stat-total').innerText = `${total}/55`;
             document.getElementById('stat-top').innerText = top;
-            const avg = members.length > 0 ? (members.reduce((acc, m) => acc + parseInt(m.points), 0) / members.length).toFixed(0) : 0;
-            document.getElementById('stat-avg').innerText = avg;
+            document.getElementById('stat-sum').innerText = sum.toLocaleString();
+            document.getElementById('stat-avg').innerText = total > 0 ? (sum / total).toFixed(0) : 0;
         }
 
+        // CRUD Logic
+        const memberForm = document.getElementById('member-form');
         memberForm.onsubmit = (e) => {
             e.preventDefault();
             const id = document.getElementById('member-id').value;
             const name = document.getElementById('name').value;
-            const points = document.getElementById('points').value;
-            const status = document.getElementById('status').value;
+            const points = parseInt(document.getElementById('points').value);
 
             if (id) {
                 const index = members.findIndex(m => m.id == id);
-                members[index] = { ...members[index], name, points, status };
+                members[index] = { ...members[index], name, points };
             } else {
-                members.push({ id: Date.now(), name, points, status });
+                members.push({ id: Date.now(), name, points });
             }
-
             closeModal();
             renderTable();
         };
-
-        function deleteMember(id) {
-            if(confirm('Deseja remover este membro da guilda?')) {
-                members = members.filter(m => m.id !== id);
-                renderTable();
-            }
-        }
 
         function editMember(id) {
             const m = members.find(m => m.id === id);
             document.getElementById('member-id').value = m.id;
             document.getElementById('name').value = m.name;
             document.getElementById('points').value = m.points;
-            document.getElementById('status').value = m.status;
-            document.getElementById('modal-title').innerText = "Editar Membro";
+            document.getElementById('modal-title').innerText = "Editar Jogador";
             openModal();
         }
 
-        function openModal() {
-            modal.classList.remove('hidden');
+        function deleteMember(id) {
+            if(confirm('Remover este membro da lista?')) {
+                members = members.filter(m => m.id !== id);
+                renderTable();
+            }
         }
 
-        function closeModal() {
-            modal.classList.add('hidden');
+        function openModal() { document.getElementById('modal').classList.remove('hidden'); }
+        function closeModal() { 
+            document.getElementById('modal').classList.add('hidden'); 
             memberForm.reset();
             document.getElementById('member-id').value = '';
-            document.getElementById('modal-title').innerText = "Adicionar Membro";
         }
 
-        // Iniciar
+        // Inicializar
         renderTable();
     </script>
 </body>
