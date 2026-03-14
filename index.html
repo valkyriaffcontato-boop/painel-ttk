@@ -3,65 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTK BRASIL | Gestão Total</title>
+    <title>TTK BRASIL | Gestão de Elite v4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;600;700&display=swap');
-        :root { --bg: #06080f; --card: #10141f; --red: #ff3e3e; --amber: #fbbf24; }
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;700&display=swap');
+        :root { --bg: #06080f; --card: #111622; --danger: #ff3e3e; --warning: #facc15; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #e2e8f0; }
         h1, .rank-font { font-family: 'Rajdhani', sans-serif; }
         .glass { background: var(--card); border: 1px solid rgba(255,255,255,0.03); }
-        .text-danger { color: var(--red) !important; text-shadow: 0 0 10px rgba(255, 62, 62, 0.4); }
-        .row-danger { background: linear-gradient(90deg, rgba(255, 62, 62, 0.03) 0%, transparent 100%); }
+        .badge-ban { background: rgba(255, 62, 62, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+        .text-danger { color: var(--danger) !important; text-shadow: 0 0 10px rgba(255, 62, 62, 0.3); }
     </style>
 </head>
 <body class="p-2 md:p-8">
 
-    <div class="max-w-6xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div>
-                <h1 class="text-4xl font-bold tracking-widest text-white">TTK <span class="text-amber-500">BRASIL</span></h1>
-                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Painel de Controle de Guilda</p>
+                <h1 class="text-4xl font-bold tracking-widest text-white uppercase">TTK <span class="text-amber-500">BRASIL</span></h1>
+                <p class="text-slate-500 text-xs font-bold tracking-widest">SISTEMA ANTI-INATIVIDADE ATIVO</p>
             </div>
-            <div class="flex gap-3">
-                <input type="text" id="searchInput" onkeyup="filter()" placeholder="Buscar membro..." class="bg-slate-800 border-none rounded-lg py-2 px-4 focus:ring-2 focus:ring-amber-500 outline-none w-48 md:w-64">
-                <button onclick="openModal()" class="bg-amber-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-amber-600 transition">
-                    <i class="fas fa-plus"></i>
-                </button>
+            <div class="flex gap-2">
+                <input type="text" id="search" onkeyup="filter()" placeholder="Buscar membro..." class="bg-slate-800 border-none rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-amber-500 w-64">
+                <button onclick="openModal()" class="bg-amber-500 text-black font-bold p-2 px-4 rounded-lg"><i class="fas fa-plus"></i></button>
             </div>
         </header>
 
         <!-- Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="glass p-4 rounded-xl border-l-4 border-amber-500">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 text-center">
+            <div class="glass p-4 rounded-xl border-b-2 border-blue-500">
                 <p class="text-slate-500 text-[10px] font-bold uppercase">Membros</p>
-                <h3 id="stat-count" class="text-2xl font-bold">50/55</h3>
+                <h3 id="stat-count" class="text-2xl font-bold">0/55</h3>
             </div>
-            <div class="glass p-4 rounded-xl border-l-4 border-red-500">
-                <p class="text-slate-500 text-[10px] font-bold uppercase">Abaixo da Meta</p>
-                <h3 id="stat-risk" class="text-2xl font-bold text-red-500">0</h3>
+            <div class="glass p-4 rounded-xl border-b-2 border-red-500">
+                <p class="text-slate-500 text-[10px] font-bold uppercase">Pendente Banimento</p>
+                <h3 id="stat-ban" class="text-2xl font-bold text-red-500">0</h3>
             </div>
-            <div class="glass p-4 rounded-xl border-l-4 border-blue-500">
-                <p class="text-slate-500 text-[10px] font-bold uppercase">Honra Total</p>
-                <h3 id="stat-sum" class="text-2xl font-bold">0</h3>
+            <div class="glass p-4 rounded-xl border-b-2 border-amber-500">
+                <p class="text-slate-500 text-[10px] font-bold uppercase">Meta Honra (5k)</p>
+                <h3 id="stat-honra" class="text-2xl font-bold">0</h3>
             </div>
-            <div class="glass p-4 rounded-xl border-l-4 border-green-500">
-                <p class="text-slate-500 text-[10px] font-bold uppercase">Top 1</p>
-                <h3 id="stat-top" class="text-sm font-bold truncate">-</h3>
+            <div class="glass p-4 rounded-xl border-b-2 border-green-500">
+                <p class="text-slate-500 text-[10px] font-bold uppercase">Meta Guerra (150)</p>
+                <h3 id="stat-war" class="text-2xl font-bold">0</h3>
             </div>
         </div>
 
-        <!-- Tabela -->
-        <div class="glass rounded-xl overflow-hidden border border-white/5">
+        <!-- Table -->
+        <div class="glass rounded-2xl overflow-hidden shadow-2xl">
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-800/50 text-slate-400 text-[10px] uppercase">
+                    <thead class="bg-slate-800/50 text-slate-400 text-[10px] uppercase font-bold">
                         <tr>
                             <th class="p-4">Rank</th>
-                            <th class="p-4">Nickname</th>
-                            <th class="p-4 text-center">Honra (5k)</th>
-                            <th class="p-4 text-center">Guerra (150)</th>
+                            <th class="p-4">Membro</th>
+                            <th class="p-4 text-center">Honra</th>
+                            <th class="p-4 text-center">Guerra</th>
+                            <th class="p-4">Status / Alerta</th>
                             <th class="p-4 text-right">Ações</th>
                         </tr>
                     </thead>
@@ -71,121 +72,116 @@
         </div>
     </div>
 
-    <!-- Modal -->
-    <div id="modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-50">
-        <div class="glass max-w-md w-full p-6 rounded-2xl">
-            <h2 class="text-xl font-bold mb-4">Editar Membro</h2>
+    <!-- Modal Form -->
+    <div id="modal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-50">
+        <div class="glass max-w-md w-full p-8 rounded-2xl border border-amber-500/20">
+            <h2 id="modal-title" class="text-2xl font-bold mb-6">Ficha do Soldado</h2>
             <form id="member-form" class="space-y-4">
                 <input type="hidden" id="m-id">
-                <input type="text" id="m-name" placeholder="Nome" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg outline-none focus:border-amber-500">
+                <input type="text" id="m-name" placeholder="Nickname" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-white">
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="m-points" placeholder="Honra" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg outline-none">
-                    <input type="number" id="m-war" placeholder="Guerra" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg outline-none">
+                    <input type="number" id="m-honra" placeholder="Honra" class="bg-slate-900 border border-slate-700 p-3 rounded-lg text-white">
+                    <input type="number" id="m-war" placeholder="Guerra" class="bg-slate-900 border border-slate-700 p-3 rounded-lg text-white">
                 </div>
-                <div class="flex gap-2">
-                    <button type="button" onclick="closeModal()" class="flex-1 py-3 text-slate-400 font-bold">CANCELAR</button>
-                    <button type="submit" class="flex-1 bg-amber-500 text-black font-bold py-3 rounded-lg">SALVAR</button>
+                <input type="text" id="m-status" placeholder="Status (Ex: ON-LINE, Bermuda...)" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-white uppercase">
+                <div class="flex gap-2 pt-4">
+                    <button type="button" onclick="closeModal()" class="flex-1 text-slate-500 font-bold">CANCELAR</button>
+                    <button type="submit" class="flex-1 bg-amber-500 text-black font-bold py-3 rounded-lg">SALVAR NO BANCO</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // LISTA COMPLETA DOS 50 MEMBROS EXTRAÍDA DAS FOTOS
-        const rawData = [
-            {n: "JR TRALHA", p: 5531}, {n: "Quebrada133", p: 4670}, {n: "TTK ANGELLO", p: 4573},
-            {n: "TTK JOYCE", p: 4513}, {n: "TTK Lirlex", p: 4499}, {n: "Lm hugo", p: 3899},
-            {n: "TTK MTX9 444", p: 3792}, {n: "EL BOCHECHA", p: 3759}, {n: "CE Xavier!", p: 3113},
-            {n: "TTK CHADAL", p: 2777}, {n: "TTK dom_max", p: 2698}, {n: "(Mestre Icon/Sem nome)", p: 2483},
-            {n: "RYANZINNN", p: 2453}, {n: "egocentrismo", p: 2136}, {n: "cearazim", p: 1835},
-            {n: "TTK VELAX1", p: 1794}, {n: "TTK ALEX", p: 1666}, {n: "ヅ LUIS", p: 1663},
-            {n: "Erick xat", p: 1632}, {n: "pTKing", p: 1484}, {n: "SHARK1", p: 1139},
-            {n: "IGG SERRATH", p: 1120}, {n: "BICHA_MUDA", p: 1096}, {n: "BZ Vordex", p: 1065},
-            {n: "Biel calvo (Líder)", p: 1024}, {n: "TTK IM LEEX", p: 970}, {n: "L mami", p: 941},
-            {n: "Black.444", p: 910}, {n: "UMB Chipotle", p: 854}, {n: "K OROCHI", p: 776},
-            {n: "Ellucky", p: 715}, {n: "Tri evilex", p: 622}, {n: "DuallzE FF", p: 447},
-            {n: "Bizon xtd", p: 440}, {n: "100% m1014", p: 415}, {n: "(Ícone Vermelho)", p: 410},
-            {n: "f Tiago", p: 350}, {n: "ellow", p: 300}, {n: "tk(buteco)", p: 212},
-            {n: "MP KOLLUA", p: 195}, {n: "FX RAFA244", p: 130}, {n: "PM GANANCIA", p: 120},
-            {n: "XS AngelloTt", p: 100}, {n: "very p3dro", p: 50}, {n: "miss chapeuzinho", p: 0},
-            {n: "very Garcia", p: 0}, {n: "BZ nianaxy", p: 0}, {n: "aim hard", p: 0},
-            {n: "(Símbolos Japoneses)", p: 0}, {n: "BR Santos!", p: 0}
-        ];
+        // --- CONFIGURAÇÃO SUPABASE ---
+        const SUPABASE_URL = 'SUA_URL_AQUI';
+        const SUPABASE_KEY = 'SUA_KEY_ANON_AQUI';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let members = JSON.parse(localStorage.getItem('ttk_final')) || rawData.map((d, i) => ({
-            id: i, name: d.n, points: d.p, war: 0 // Guerra começa em 0
-        }));
+        let membros = [];
 
-        function render(data = members) {
+        async function load() {
+            const { data, error } = await sb.from('membros').select('*').order('honra', { ascending: false });
+            if (data) { membros = data; render(); }
+        }
+
+        function render(data = membros) {
             const body = document.getElementById('table-body');
-            data.sort((a,b) => b.points - a.points);
             body.innerHTML = '';
-            let risk = 0;
-            let sum = 0;
+            let banCount = 0;
+
+            const accepted = ["ON-LINE", "ONLINE", "JOGANDO", "NA EQUIPE"];
 
             data.forEach((m, i) => {
-                const isBad = m.points < 5000 || m.war < 150;
-                if(isBad) risk++;
-                sum += parseInt(m.points);
+                // Regras de Cor e Status
+                const lowScore = m.honra < 5000 || m.guerra < 150;
+                const badStatus = !accepted.includes(m.status?.toUpperCase());
+                
+                if(badStatus) banCount++;
 
                 body.innerHTML += `
-                    <tr class="${isBad ? 'row-danger' : ''} transition-colors">
+                    <tr class="hover:bg-white/5 transition-all">
                         <td class="p-4 rank-font text-slate-600 font-bold">#${i+1}</td>
-                        <td class="p-4 font-bold ${isBad ? 'text-danger' : 'text-white'}">${m.name}</td>
-                        <td class="p-4 text-center font-mono ${m.points < 5000 ? 'text-red-400' : 'text-amber-500'}">${m.points}</td>
-                        <td class="p-4 text-center font-mono ${m.war < 150 ? 'text-red-400' : 'text-green-500'}">${m.war}</td>
+                        <td class="p-4 font-bold ${lowScore ? 'text-danger' : 'text-white'}">
+                            ${m.nome}
+                        </td>
+                        <td class="p-4 text-center font-mono ${m.honra < 5000 ? 'text-red-400' : 'text-amber-500'}">${m.honra}</td>
+                        <td class="p-4 text-center font-mono ${m.guerra < 150 ? 'text-red-400' : 'text-green-500'}">${m.guerra}</td>
+                        <td class="p-4">
+                            <span class="text-[10px] font-bold uppercase ${badStatus ? 'badge-ban px-2 py-1 rounded' : 'text-slate-500'}">
+                                ${m.status || 'N/A'} 
+                                ${badStatus ? '<i class="fas fa-user-slash ml-1"></i> PENDENTE BAN' : ''}
+                            </span>
+                        </td>
                         <td class="p-4 text-right">
-                            <button onclick="edit(${m.id})" class="text-slate-500 hover:text-white"><i class="fas fa-edit"></i></button>
+                            <button onclick="edit(${m.id})" class="text-slate-500 hover:text-amber-500"><i class="fas fa-edit"></i></button>
                         </td>
                     </tr>
                 `;
             });
-            
-            document.getElementById('stat-count').innerText = `${members.length}/55`;
-            document.getElementById('stat-risk').innerText = risk;
-            document.getElementById('stat-sum').innerText = sum.toLocaleString();
-            document.getElementById('stat-top').innerText = data[0]?.name || '-';
-            localStorage.setItem('ttk_final', JSON.stringify(members));
+
+            document.getElementById('stat-count').innerText = `${membros.length}/55`;
+            document.getElementById('stat-ban').innerText = banCount;
+            document.getElementById('stat-honra').innerText = membros.reduce((a, b) => a + (b.honra || 0), 0).toLocaleString();
         }
 
-        function filter() {
-            const q = document.getElementById('searchInput').value.toLowerCase();
-            render(members.filter(m => m.name.toLowerCase().includes(q)));
-        }
+        // CRUD
+        document.getElementById('member-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('m-id').value;
+            const payload = {
+                nome: document.getElementById('m-name').value,
+                honra: parseInt(document.getElementById('m-honra').value),
+                guerra: parseInt(document.getElementById('m-war').value),
+                status: document.getElementById('m-status').value.toUpperCase()
+            };
+
+            const { error } = id 
+                ? await sb.from('membros').update(payload).eq('id', id)
+                : await sb.from('membros').insert([payload]);
+
+            if(!error) { closeModal(); load(); }
+        };
 
         function edit(id) {
-            const m = members.find(x => x.id == id);
+            const m = membros.find(x => x.id == id);
             document.getElementById('m-id').value = m.id;
-            document.getElementById('m-name').value = m.name;
-            document.getElementById('m-points').value = m.points;
-            document.getElementById('m-war').value = m.war;
+            document.getElementById('m-name').value = m.nome;
+            document.getElementById('m-honra').value = m.honra;
+            document.getElementById('m-war').value = m.guerra;
+            document.getElementById('m-status').value = m.status || '';
             openModal();
         }
 
-        document.getElementById('member-form').onsubmit = (e) => {
-            e.preventDefault();
-            const id = document.getElementById('m-id').value;
-            const obj = {
-                id: id ? parseInt(id) : Date.now(),
-                name: document.getElementById('m-name').value,
-                points: parseInt(document.getElementById('m-points').value),
-                war: parseInt(document.getElementById('m-war').value)
-            };
-            
-            if(id) {
-                const idx = members.findIndex(x => x.id == id);
-                members[idx] = obj;
-            } else {
-                members.push(obj);
-            }
-            closeModal();
-            render();
-        };
+        function filter() {
+            const q = document.getElementById('search').value.toLowerCase();
+            render(membros.filter(m => m.nome.toLowerCase().includes(q)));
+        }
 
         function openModal() { document.getElementById('modal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('modal').classList.add('hidden'); document.getElementById('member-form').reset(); }
 
-        render();
+        load();
     </script>
 </body>
 </html>
