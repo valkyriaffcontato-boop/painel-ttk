@@ -3,97 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTK BRASIL | Gestão Oficial</title>
+    <title>TTK BRASIL | Sistema de Banimento Estrito</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;700&display=swap');
-        :root { --bg: #06080f; --card: #111622; --danger: #ff3e3e; --amber: #fbbf24; }
+        :root { --bg: #05070a; --card: #0d111a; --danger: #ff3e3e; --amber: #fbbf24; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #e2e8f0; }
         h1, .rank-font { font-family: 'Rajdhani', sans-serif; }
         .glass { background: var(--card); border: 1px solid rgba(255,255,255,0.03); }
-        .badge-ban { background: rgba(255, 62, 62, 0.2); color: var(--danger); border: 1px solid var(--danger); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; }
+        .badge-ban { background: rgba(255, 62, 62, 0.2); color: var(--danger); border: 1px solid var(--danger); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; }
         .text-danger { color: var(--danger) !important; font-weight: bold; }
-        .lider-tag { color: #fbbf24; border: 1px solid #fbbf24; padding: 1px 4px; border-radius: 4px; font-size: 10px; margin-left: 5px; }
-        .vice-tag { color: #cbd5e1; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px; font-size: 10px; margin-left: 5px; }
+        .tag-lider { background: #fbbf24; color: #000; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 8px; }
+        .tag-vice { background: #94a3b8; color: #000; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 8px; }
     </style>
 </head>
 <body class="p-2 md:p-8">
 
     <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 text-center md:text-left">
             <div>
-                <h1 class="text-4xl font-bold tracking-widest text-white uppercase">TTK <span class="text-amber-500">BRASIL</span></h1>
-                <p class="text-slate-500 text-[10px] font-bold tracking-[0.3em]">CONTROLE ESTRATÉGICO DE MEMBROS</p>
+                <h1 class="text-5xl font-bold tracking-tighter text-white uppercase italic">TTK <span class="text-amber-500 font-black">BRASIL</span></h1>
+                <p class="text-slate-500 text-[10px] font-bold tracking-[0.4em] uppercase">Gestão de Inatividade e Modos Proibidos</p>
             </div>
-            <div class="flex gap-2">
-                <input type="text" id="search" onkeyup="filter()" placeholder="Buscar membro..." class="bg-slate-800 border-none rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-amber-500 w-64">
-                <button onclick="resetData()" class="text-slate-600 text-[10px] hover:text-red-500 transition">RESTAURAR LISTA</button>
+            <div class="flex flex-col items-end gap-2">
+                <input type="text" id="search" onkeyup="filter()" placeholder="Procurar membro..." class="bg-slate-900 border-none rounded-lg px-4 py-2 outline-none focus:ring-1 focus:ring-amber-500 w-64 text-sm">
+                <button onclick="resetData()" class="text-[9px] text-slate-700 hover:text-red-500 transition font-bold uppercase">Resetar Banco de Dados Local</button>
             </div>
         </header>
 
         <!-- Stats -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="glass p-5 rounded-xl border-l-4 border-amber-500">
-                <p class="text-slate-500 text-[10px] font-bold uppercase">Líder Atual</p>
-                <h3 class="text-xl font-bold text-amber-500">TTK ANGELLO</h3>
+            <div class="glass p-5 rounded-2xl border-l-4 border-amber-500">
+                <p class="text-slate-500 text-[10px] font-black uppercase mb-1">Comandante</p>
+                <h3 class="text-lg font-bold text-amber-500 uppercase tracking-tighter">TTK ANGELLO</h3>
             </div>
-            <div class="glass p-5 rounded-xl border-l-4 border-red-600">
-                <p class="text-slate-500 text-[10px] font-bold uppercase text-red-500">Alvos de Ban (+1 Dia)</p>
-                <h3 id="stat-ban" class="text-2xl font-bold text-red-500">0</h3>
+            <div class="glass p-5 rounded-2xl border-l-4 border-red-600 shadow-[0_0_20px_rgba(255,62,62,0.1)]">
+                <p class="text-slate-500 text-[10px] font-black uppercase mb-1 text-red-500">Listados p/ Banimento</p>
+                <h3 id="stat-ban" class="text-3xl font-black text-red-500">0</h3>
             </div>
-            <div class="glass p-5 rounded-xl border-l-4 border-blue-500">
-                <p class="text-slate-500 text-[10px] font-bold uppercase">Membros na Guilda</p>
+            <div class="glass p-5 rounded-2xl border-l-4 border-slate-700">
+                <p class="text-slate-500 text-[10px] font-black uppercase mb-1">Efetivo Atual</p>
                 <h3 id="stat-count" class="text-2xl font-bold text-white">0/55</h3>
             </div>
-            <div class="glass p-5 rounded-xl border-l-4 border-green-500">
-                <p class="text-slate-500 text-[10px] font-bold uppercase text-green-500">Metas</p>
-                <h3 class="text-[10px] font-bold text-white uppercase">Honra: 5000 | Guerra: 150</h3>
+            <div class="glass p-5 rounded-2xl border-l-4 border-green-600 text-[9px] font-bold">
+                <p class="text-green-500 uppercase mb-2">CRITÉRIOS DE CORTE</p>
+                <p class="text-white">❌ Modo: Bermuda/CS/Gladiadores</p>
+                <p class="text-white">❌ Inatividade: +24 Horas (1 Dia)</p>
             </div>
         </div>
 
         <!-- Tabela -->
-        <div class="glass rounded-2xl overflow-hidden shadow-2xl border border-white/5">
+        <div class="glass rounded-3xl overflow-hidden border border-white/5">
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-800/80 text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                    <thead class="bg-slate-900/80 text-slate-500 text-[10px] uppercase font-black tracking-widest">
                         <tr>
-                            <th class="p-4">Rank</th>
-                            <th class="p-4">Nickname</th>
-                            <th class="p-4 text-center">Honra (Meta 5k)</th>
-                            <th class="p-4 text-center">Guerra (Meta 150)</th>
-                            <th class="p-4">Status / Atividade</th>
-                            <th class="p-4 text-right">Ações</th>
+                            <th class="p-5">#</th>
+                            <th class="p-5">Membro</th>
+                            <th class="p-5 text-center">Honra</th>
+                            <th class="p-5 text-center">Guerra</th>
+                            <th class="p-5">Status / Modo</th>
+                            <th class="p-5 text-right">Editar</th>
                         </tr>
                     </thead>
-                    <tbody id="table-body" class="divide-y divide-white/5"></tbody>
+                    <tbody id="table-body" class="divide-y divide-white/5 font-medium"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <!-- Modal Edição -->
-    <div id="modal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-50">
-        <div class="glass max-w-md w-full p-8 rounded-2xl">
-            <h2 class="text-xl font-bold mb-6 text-white uppercase tracking-tighter">Editar Soldado</h2>
-            <form id="edit-form" class="space-y-4">
+    <div id="modal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-50 backdrop-blur-xl">
+        <div class="glass max-w-md w-full p-8 rounded-3xl border border-white/10">
+            <h2 class="text-2xl font-black mb-6 text-white uppercase italic tracking-tighter italic">Editar Atividade</h2>
+            <form id="edit-form" class="space-y-5">
                 <input type="hidden" id="edit-id">
-                <input type="text" id="edit-name" readonly class="w-full bg-slate-900 border-none p-3 rounded-lg text-slate-500 font-bold">
+                <input type="text" id="edit-name" readonly class="w-full bg-transparent border-none p-0 rounded-lg text-amber-500 font-black text-xl">
+                
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="edit-honra" placeholder="Honra" class="bg-slate-800 p-3 rounded-lg text-white">
-                    <input type="number" id="edit-war" placeholder="Guerra" class="bg-slate-800 p-3 rounded-lg text-white">
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase">Honra Atual</label>
+                        <input type="number" id="edit-honra" class="w-full bg-slate-900 border-none p-4 rounded-xl text-white outline-none ring-1 ring-white/5 focus:ring-amber-500">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase">Guerra Atual</label>
+                        <input type="number" id="edit-war" class="w-full bg-slate-900 border-none p-4 rounded-xl text-white outline-none ring-1 ring-white/5 focus:ring-amber-500">
+                    </div>
                 </div>
-                <input type="text" id="edit-status" placeholder="Ex: Online, Jogando, 1 dia atrás..." class="w-full bg-slate-800 p-3 rounded-lg text-white uppercase">
-                <div class="flex gap-2 pt-4">
-                    <button type="button" onclick="closeModal()" class="flex-1 text-slate-500 font-bold uppercase text-xs">Sair</button>
-                    <button type="submit" class="flex-1 bg-amber-500 text-black font-bold py-3 rounded-lg uppercase text-xs">Salvar</button>
+
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase">Status do Vídeo (Ex: Bermuda, Online, 1 dia...)</label>
+                    <input type="text" id="edit-status" class="w-full bg-slate-900 border-none p-4 rounded-xl text-white uppercase outline-none ring-1 ring-white/5 focus:ring-amber-500">
+                </div>
+
+                <div class="flex gap-3 pt-6">
+                    <button type="button" onclick="closeModal()" class="flex-1 text-slate-500 font-bold uppercase text-xs">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-amber-500 text-black font-black py-4 rounded-2xl uppercase text-xs shadow-lg shadow-amber-500/20">Atualizar Dados</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // Dados originais com a nova liderança
         const initialMembers = [
             {id: 1, name: "TTK ANGELLO", honra: 6097, war: 196, status: "JOGANDO", role: "lider"},
             {id: 2, name: "TTK JOYCE", honra: 4513, war: 141, status: "1 HORA ATRÁS", role: "vice"},
@@ -147,20 +159,20 @@
             {id: 50, name: "BR Santos!", honra: 0, war: 0, status: "1 DIA ATRÁS"}
         ];
 
-        let members = JSON.parse(localStorage.getItem('ttk_official_db')) || initialMembers;
+        let members = JSON.parse(localStorage.getItem('ttk_v_final')) || initialMembers;
 
         function checkBanStatus(status) {
             if (!status) return false;
             const s = status.toUpperCase();
             
-            // Se tiver "DIA" ou "SEMANA", é banimento certo
-            if (s.includes("DIA") || s.includes("SEMANA")) return true;
+            // SEGURO: Apenas se contiver estas palavras exatas
+            const safeKeywords = ["JOGANDO", "ONLINE", "ON-LINE", "NA EQUIPE", "MINUTO", "HORA"];
+            const isSafe = safeKeywords.some(word => s.includes(word));
             
-            // Se NÃO tiver nenhuma das palavras seguras, é banimento
-            const safe = ["MINUTO", "HORA", "JOGANDO", "ONLINE", "ON-LINE", "EQUIPE", "BERMUDA", "GLADIADORES", "SOLARA", "ELIMINADORES", "CONTRA"];
-            const isSafe = safe.some(word => s.includes(word));
-            
-            return !isSafe;
+            if (isSafe) return false;
+
+            // BANIMENTO: Qualquer outra coisa (Bermuda, Gladiadores, Dias, CS...)
+            return true;
         }
 
         function render() {
@@ -176,22 +188,24 @@
 
                 body.innerHTML += `
                     <tr class="hover:bg-white/5 border-b border-white/5 transition-all ${isBan ? 'bg-red-500/5' : ''}">
-                        <td class="p-4 rank-font text-slate-700 font-bold text-lg">#${i+1}</td>
-                        <td class="p-4">
-                            <span class="font-bold ${lowScore ? 'text-danger' : 'text-white'}">${m.name}</span>
-                            ${m.role === 'lider' ? '<span class="lider-tag uppercase font-bold">Líder</span>' : ''}
-                            ${m.role === 'vice' ? '<span class="vice-tag uppercase font-bold">Vice</span>' : ''}
+                        <td class="p-5 rank-font text-slate-700 font-bold text-lg">#${i+1}</td>
+                        <td class="p-5">
+                            <div class="flex items-center">
+                                <span class="font-bold ${lowScore ? 'text-danger' : 'text-white'}">${m.name}</span>
+                                ${m.role === 'lider' ? '<span class="tag-lider uppercase">Comandante</span>' : ''}
+                                ${m.role === 'vice' ? '<span class="tag-vice uppercase">Vice</span>' : ''}
+                            </div>
                         </td>
-                        <td class="p-4 text-center font-mono ${m.honra < 5000 ? 'text-red-400' : 'text-amber-500'}">${m.honra.toLocaleString()}</td>
-                        <td class="p-4 text-center font-mono ${m.war < 150 ? 'text-red-400' : 'text-green-500'}">${m.war}</td>
-                        <td class="p-4">
+                        <td class="p-5 text-center font-mono ${m.honra < 5000 ? 'text-red-400' : 'text-amber-500'}">${m.honra.toLocaleString()}</td>
+                        <td class="p-5 text-center font-mono ${m.war < 150 ? 'text-red-400' : 'text-green-500'}">${m.war}</td>
+                        <td class="p-5">
                             <div class="flex flex-col">
-                                <span class="text-[10px] uppercase font-bold text-slate-400">${m.status || 'Offline'}</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-400">${m.status || 'OFFLINE'}</span>
                                 ${isBan ? '<span class="badge-ban w-fit mt-1 uppercase">Pendente Banimento</span>' : ''}
                             </div>
                         </td>
-                        <td class="p-4 text-right">
-                            <button onclick="openEdit(${m.id})" class="text-slate-500 hover:text-amber-500 transition"><i class="fas fa-edit"></i></button>
+                        <td class="p-5 text-right">
+                            <button onclick="openEdit(${m.id})" class="text-slate-500 hover:text-amber-500 transition-all scale-125"><i class="fas fa-pen-nib"></i></button>
                         </td>
                     </tr>
                 `;
@@ -199,13 +213,13 @@
 
             document.getElementById('stat-count').innerText = `${members.length}/55`;
             document.getElementById('stat-ban').innerText = banCount;
-            localStorage.setItem('ttk_official_db', JSON.stringify(members));
+            localStorage.setItem('ttk_v_final', JSON.stringify(members));
         }
 
         function openEdit(id) {
             const m = members.find(x => x.id == id);
             document.getElementById('edit-id').value = m.id;
-            document.getElementById('edit-name').value = m.name + (m.role ? ` (${m.role})` : "");
+            document.getElementById('edit-name').value = m.name;
             document.getElementById('edit-honra').value = m.honra;
             document.getElementById('edit-war').value = m.war;
             document.getElementById('edit-status').value = m.status;
@@ -226,8 +240,8 @@
         };
 
         function resetData() {
-            if(confirm("Deseja resetar a lista? Isso limpará suas edições atuais.")) {
-                localStorage.removeItem('ttk_official_db');
+            if(confirm("Deseja restaurar as configurações de fábrica da guilda?")) {
+                localStorage.removeItem('ttk_v_final');
                 location.reload();
             }
         }
