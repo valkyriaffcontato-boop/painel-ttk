@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Elite - TTK BRASIL</title>
+    <!-- Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ffcc00;
+            --secondary: #ff8800;
+            --bg: #0b0b0d;
+            --card-bg: #16171a;
+            --text: #ffffff;
+            --danger: #ff4d4d;
+            --success: #00ff88;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: linear-gradient(180deg, rgba(255, 204, 0, 0.1) 0%, rgba(0,0,0,0) 100%);
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .logo-area h1 {
+            margin: 0;
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: var(--primary);
+            text-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: -30px auto 50px;
+            padding: 0 20px;
+        }
+
+        /* Dashboard de Pontos */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .stat-card span { color: #888; text-transform: uppercase; font-size: 0.9rem; }
+        .stat-card h2 { margin: 10px 0 0; font-size: 2rem; color: var(--primary); }
+
+        /* Controles */
+        .controls {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        input {
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 150px;
+            font-family: inherit;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-add { background: var(--primary); color: black; }
+        .btn-add:hover { background: var(--secondary); transform: scale(1.05); }
+
+        /* Tabela */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #222;
+            color: var(--primary);
+            text-align: left;
+            padding: 15px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #222;
+            font-size: 1.1rem;
+        }
+
+        tr:hover { background: rgba(255,255,255,0.05); }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: #333;
+        }
+
+        .online { color: var(--success); border: 1px solid var(--success); }
+        .offline { color: #888; border: 1px solid #444; }
+
+        .pts-val { color: var(--primary); font-weight: bold; }
+
+        .actions button {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+        }
+
+        .btn-edit { background: #44aaff; color: white; }
+        .btn-del { background: var(--danger); color: white; }
+
+        .search-box { width: 100%; margin-bottom: 20px; }
+
+        @media (max-width: 600px) {
+            .logo-area h1 { font-size: 1.8rem; }
+            td, th { padding: 10px 5px; font-size: 0.9rem; }
+            .controls { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo-area">
+        <h1>TTK BRASIL</h1>
+        <p>GUILDA NÍVEL 7 - RONDÔNIA</p>
+    </div>
+</header>
+
+<div class="container">
+    <div class="dashboard">
+        <div class="stat-card">
+            <span>Pontuação Total</span>
+            <h2 id="totalPts">0</h2>
+        </div>
+        <div class="stat-card">
+            <span>Membros Ativos</span>
+            <h2 id="totalMembros">0 / 55</h2>
+        </div>
+        <div class="stat-card">
+            <span>Média por Jogador</span>
+            <h2 id="avgPts">0</h2>
+        </div>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="search" class="search-box" placeholder="🔎 Pesquisar jogador pelo nick..." oninput="renderTable()">
+        <input type="text" id="newNick" placeholder="Nick do Jogador">
+        <input type="number" id="newPts" placeholder="Pontos">
+        <input type="text" id="newStatus" placeholder="Status (ex: Online, 2d off)">
+        <button class="btn-add" onclick="addMember()">Adicionar Membro</button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nick</th>
+                    <th>Pontuação</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="memberList"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // LISTA COMPLETA EXTRAÍDA DO VÍDEO (50 MEMBROS)
+    const initialMembers = [
+        {nick: "Biel calvo", pts: 1024, status: "ON-LINE"},
+        {nick: "egocentrismo", pts: 2136, status: "NA EQUIPE"},
+        {nick: "Black.444", pts: 910, status: "CRIATIVO"},
+        {nick: "TTK Lirlex", pts: 4499, status: "10 MIN ATRÁS"},
+        {nick: "TTK MTX9 444", pts: 3792, status: "SOLARA"},
+        {nick: "ヅ LUIS", pts: 1663, status: "CS RANQUEADO"},
+        {nick: "TTK dom_max", pts: 2698, status: "PURGATÓRIO"},
+        {nick: "CE Xavier!", pts: 3113, status: "CS RANQUEADO"},
+        {nick: "TTK ANGELLO", pts: 4573, status: "5 HORAS ATRÁS"},
+        {nick: "TTK JOYCE", pts: 4513, status: "14 HORAS ATRÁS"},
+        {nick: "Lm hugo", pts: 3899, status: "3 HORAS ATRÁS"},
+        {nick: "pTKing", pts: 1484, status: "14 HORAS ATRÁS"},
+        {nick: "JR TRALHA", pts: 5531, status: "2 HORAS ATRÁS"},
+        {nick: "SHARK1", pts: 1139, status: "2 HORAS ATRÁS"},
+        {nick: "XS AngelloTt", pts: 100, status: "5 HORAS ATRÁS"},
+        {nick: "EL BOCHECHA", pts: 3759, status: "13 HORAS ATRÁS"},
+        {nick: "Ellucky", pts: 715, status: "1 HORA ATRÁS"},
+        {nick: "BZ Vordex", pts: 1065, status: "1 HORA ATRÁS"},
+        {nick: "cearazim", pts: 1835, status: "3 HORAS ATRÁS"},
+        {nick: "Bizon xtd", pts: 440, status: "1 DIA ATRÁS"},
+        {nick: "Erick xat", pts: 1632, status: "9 HORAS ATRÁS"},
+        {nick: "f Tiago", pts: 350, status: "3 HORAS ATRÁS"},
+        {nick: "IGG SERRATH", pts: 1120, status: "14 HORAS ATRÁS"},
+        {nick: "K OROCHI", pts: 776, status: "13 HORAS ATRÁS"},
+        {nick: "miss chapeuzinho", pts: 0, status: "5 DIAS ATRÁS"},
+        {nick: "Tri evilex", pts: 622, status: "14 HORAS ATRÁS"},
+        {nick: "Mestre Icon", pts: 2483, status: "1 HORA ATRÁS"},
+        {nick: "very Garcia", pts: 0, status: "18 HORAS ATRÁS"},
+        {nick: "RYANZINNN", pts: 2453, status: "11 MIN ATRÁS"},
+        {nick: "BICHA_MUDA", pts: 1096, status: "15 HORAS ATRÁS"},
+        {nick: "ellow", pts: 300, status: "20 HORAS ATRÁS"},
+        {nick: "TTK CHADAL", pts: 2777, status: "2 HORAS ATRÁS"},
+        {nick: "BZ nianaxy", pts: 0, status: "10 HORAS ATRÁS"},
+        {nick: "TTK ALEX", pts: 1666, status: "15 HORAS ATRÁS"},
+        {nick: "PM GANANCIA", pts: 120, status: "1 DIA ATRÁS"},
+        {nick: "very p3dro", pts: 50, status: "14 HORAS ATRÁS"},
+        {nick: "aim hard", pts: 0, status: "1 DIA ATRÁS"},
+        {nick: "100% m1014", pts: 415, status: "1 DIA ATRÁS"},
+        {nick: "DuallzE FF", pts: 447, status: "1 HORA ATRÁS"},
+        {nick: "L mami", pts: 941, status: "1 DIA ATRÁS"},
+        {nick: "UMB Chipotle", pts: 854, status: "1 DIA ATRÁS"},
+        {nick: "tk(buteco)", pts: 212, status: "17 HORAS ATRÁS"},
+        {nick: "MP KOLLUA", pts: 195, status: "11 HORAS ATRÁS"},
+        {nick: "TTK VELAX1", pts: 1794, status: "12 HORAS ATRÁS"},
+        {nick: "Quebrada133", pts: 4670, status: "17 HORAS ATRÁS"},
+        {nick: "BR Santos!", pts: 0, status: "1 DIA ATRÁS"},
+        {nick: "FX RAFA244", pts: 130, status: "2 HORAS ATRÁS"},
+        {nick: "TTK IM LEEX", pts: 970, status: "9 HORAS ATRÁS"}
+    ];
+
+    let members = JSON.parse(localStorage.getItem('ttk_final_data')) || initialMembers;
+
+    function renderTable() {
+        const list = document.getElementById('memberList');
+        const searchTerm = document.getElementById('search').value.toLowerCase();
+        list.innerHTML = '';
+        
+        let total = 0;
+        let filteredCount = 0;
+
+        // Ordenar por pontos (Maior para Menor)
+        members.sort((a, b) => b.pts - a.pts);
+
+        members.forEach((m, index) => {
+            if (m.nick.toLowerCase().includes(searchTerm)) {
+                total += parseInt(m.pts);
+                filteredCount++;
+                
+                const isOnline = m.status.includes('ON-LINE') || m.status.includes('EQUIPE');
+                const badgeClass = isOnline ? 'online' : 'offline';
+
+                list.innerHTML += `
+                    <tr>
+                        <td><b>${m.nick}</b></td>
+                        <td class="pts-val">${parseInt(m.pts).toLocaleString()}</td>
+                        <td><span class="status-badge ${badgeClass}">${m.status}</span></td>
+                        <td class="actions">
+                            <button class="btn-edit" onclick="editMember(${index})">✎</button>
+                            <button class="btn-del" onclick="deleteMember(${index})">X</button>
+                        </td>
+                    </tr>
+                `;
+            }
+        });
+
+        // Atualizar Dashboard
+        document.getElementById('totalPts').innerText = total.toLocaleString();
+        document.getElementById('totalMembros').innerText = `${members.length} / 55`;
+        document.getElementById('avgPts').innerText = members.length > 0 ? Math.floor(total / members.length).toLocaleString() : 0;
+        
+        localStorage.setItem('ttk_final_data', JSON.stringify(members));
+    }
+
+    function addMember() {
+        const nick = document.getElementById('newNick').value;
+        const pts = document.getElementById('newPts').value;
+        const status = document.getElementById('newStatus').value || "OFF-LINE";
+
+        if(nick && pts) {
+            members.push({nick, pts: parseInt(pts), status});
+            document.getElementById('newNick').value = '';
+            document.getElementById('newPts').value = '';
+            document.getElementById('newStatus').value = '';
+            renderTable();
+        } else {
+            alert("Preencha o Nick e os Pontos!");
+        }
+    }
+
+    function deleteMember(index) {
+        if(confirm(`Remover ${members[index].nick} da lista?`)) {
+            members.splice(index, 1);
+            renderTable();
+        }
+    }
+
+    function editMember(index) {
+        const newPts = prompt(`Nova pontuação para ${members[index].nick}:`, members[index].pts);
+        const newStatus = prompt(`Novo status para ${members[index].nick}:`, members[index].status);
+        
+        if (newPts !== null) members[index].pts = parseInt(newPts);
+        if (newStatus !== null) members[index].status = newStatus;
+        
+        renderTable();
+    }
+
+    renderTable();
+</script>
+
+</body>
+  </html>
