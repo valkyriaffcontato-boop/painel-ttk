@@ -3,259 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTK BRASIL | Sistema de Banimento Estrito</title>
+    <title>TTK BRASIL | Painel de Comando</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;700&display=swap');
-        :root { --bg: #05070a; --card: #0d111a; --danger: #ff3e3e; --amber: #fbbf24; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #e2e8f0; }
-        h1, .rank-font { font-family: 'Rajdhani', sans-serif; }
-        .glass { background: var(--card); border: 1px solid rgba(255,255,255,0.03); }
-        .badge-ban { background: rgba(255, 62, 62, 0.2); color: var(--danger); border: 1px solid var(--danger); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; }
-        .text-danger { color: var(--danger) !important; font-weight: bold; }
-        .tag-lider { background: #fbbf24; color: #000; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 8px; }
-        .tag-vice { background: #94a3b8; color: #000; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 8px; }
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&family=Inter:wght@400;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #05070a; color: #e2e8f0; }
+        .glass { background: #0d111a; border: 1px solid rgba(255,255,255,0.05); }
+        .text-danger { color: #ff3e3e !important; }
+        .tab-active { border-bottom: 2px solid #fbbf24; color: #fbbf24; }
+        .badge-ban { background: rgba(255, 62, 62, 0.2); color: #ff3e3e; border: 1px solid #ff3e3e; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 900; }
     </style>
 </head>
-<body class="p-2 md:p-8">
+<body class="p-4 md:p-8">
 
-    <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 text-center md:text-left">
-            <div>
-                <h1 class="text-5xl font-bold tracking-tighter text-white uppercase italic">TTK <span class="text-amber-500 font-black">BRASIL</span></h1>
-                <p class="text-slate-500 text-[10px] font-bold tracking-[0.4em] uppercase">Gestão de Inatividade e Modos Proibidos</p>
-            </div>
-            <div class="flex flex-col items-end gap-2">
-                <input type="text" id="search" onkeyup="filter()" placeholder="Procurar membro..." class="bg-slate-900 border-none rounded-lg px-4 py-2 outline-none focus:ring-1 focus:ring-amber-500 w-64 text-sm">
-                <button onclick="resetData()" class="text-[9px] text-slate-700 hover:text-red-500 transition font-bold uppercase">Resetar Banco de Dados Local</button>
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+            <h1 class="text-4xl font-black uppercase italic italic">TTK <span class="text-amber-500">BRASIL</span></h1>
+            <div class="flex gap-4">
+                <button onclick="fetchAll()" class="bg-amber-500 text-black font-bold px-6 py-2 rounded-lg hover:bg-amber-600 transition flex items-center gap-2">
+                    <i class="fas fa-sync-alt"></i> ATUALIZAR TUDO
+                </button>
             </div>
         </header>
 
-        <!-- Stats -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="glass p-5 rounded-2xl border-l-4 border-amber-500">
-                <p class="text-slate-500 text-[10px] font-black uppercase mb-1">Comandante</p>
-                <h3 class="text-lg font-bold text-amber-500 uppercase tracking-tighter">TTK ANGELLO</h3>
-            </div>
-            <div class="glass p-5 rounded-2xl border-l-4 border-red-600 shadow-[0_0_20px_rgba(255,62,62,0.1)]">
-                <p class="text-slate-500 text-[10px] font-black uppercase mb-1 text-red-500">Listados p/ Banimento</p>
-                <h3 id="stat-ban" class="text-3xl font-black text-red-500">0</h3>
-            </div>
-            <div class="glass p-5 rounded-2xl border-l-4 border-slate-700">
-                <p class="text-slate-500 text-[10px] font-black uppercase mb-1">Efetivo Atual</p>
-                <h3 id="stat-count" class="text-2xl font-bold text-white">0/55</h3>
-            </div>
-            <div class="glass p-5 rounded-2xl border-l-4 border-green-600 text-[9px] font-bold">
-                <p class="text-green-500 uppercase mb-2">CRITÉRIOS DE CORTE</p>
-                <p class="text-white">❌ Modo: Bermuda/CS/Gladiadores</p>
-                <p class="text-white">❌ Inatividade: +24 Horas (1 Dia)</p>
+        <!-- Navegação -->
+        <nav class="flex gap-8 border-b border-white/10 mb-8 font-bold uppercase text-xs tracking-widest">
+            <button onclick="showTab('ranking')" id="btn-ranking" class="pb-4 tab-active">Ranking de Honra</button>
+            <button onclick="showTab('avisos')" id="btn-avisos" class="pb-4 text-slate-500">Lista de Avisos</button>
+            <button onclick="showTab('banidos')" id="btn-banidos" class="pb-4 text-slate-500">Mural de Banidos</button>
+        </nav>
+
+        <!-- ABA: RANKING -->
+        <div id="tab-ranking" class="space-y-4">
+            <div class="glass rounded-2xl overflow-hidden shadow-2xl">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-900 text-[10px] uppercase text-slate-500 font-bold">
+                        <tr>
+                            <th class="p-4">#</th>
+                            <th class="p-4">Nickname</th>
+                            <th class="p-4 text-center">Honra (5k)</th>
+                            <th class="p-4 text-center">Guerra (150)</th>
+                            <th class="p-4">Status / Alerta</th>
+                            <th class="p-4 text-right">Gestão</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-ranking" class="divide-y divide-white/5"></tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Tabela -->
-        <div class="glass rounded-3xl overflow-hidden border border-white/5">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-900/80 text-slate-500 text-[10px] uppercase font-black tracking-widest">
-                        <tr>
-                            <th class="p-5">#</th>
-                            <th class="p-5">Membro</th>
-                            <th class="p-5 text-center">Honra</th>
-                            <th class="p-5 text-center">Guerra</th>
-                            <th class="p-5">Status / Modo</th>
-                            <th class="p-5 text-right">Editar</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body" class="divide-y divide-white/5 font-medium"></tbody>
-                </table>
+        <!-- ABA: AVISOS -->
+        <div id="tab-avisos" class="hidden space-y-6">
+            <div class="glass p-6 rounded-2xl">
+                <h3 class="font-bold mb-4 uppercase text-amber-500">Postar Novo Aviso</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="aviso-msg" placeholder="Digite o aviso para a guilda..." class="flex-1 bg-slate-900 p-3 rounded-lg outline-none">
+                    <select id="aviso-autor" class="bg-slate-900 p-3 rounded-lg outline-none">
+                        <option value="TTK ANGELLO">ANGELLO (Líder)</option>
+                        <option value="TTK JOYCE">JOYCE (Vice)</option>
+                    </select>
+                    <button onclick="postarAviso()" class="bg-blue-600 px-6 rounded-lg font-bold">POSTAR</button>
+                </div>
+            </div>
+            <div id="lista-avisos" class="grid gap-4"></div>
+        </div>
+
+        <!-- ABA: BANIDOS -->
+        <div id="tab-banidos" class="hidden space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="lista-banidos"></div>
+        </div>
+    </div>
+
+    <!-- Modal Banimento Manual -->
+    <div id="modal-ban" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-50">
+        <div class="glass max-w-md w-full p-8 rounded-2xl">
+            <h2 class="text-xl font-black text-red-500 uppercase mb-4 italic">Confirmar Banimento</h2>
+            <div class="space-y-4">
+                <p class="text-white font-bold">Nick: <span id="ban-nick" class="text-amber-500 text-xl">-</span></p>
+                <div>
+                    <label class="text-[10px] text-slate-500 font-bold uppercase">Aplicado por:</label>
+                    <select id="ban-autor" class="w-full bg-slate-800 p-3 rounded-lg mt-1 outline-none">
+                        <option value="TTK ANGELLO">TTK ANGELLO</option>
+                        <option value="TTK JOYCE">TTK JOYCE</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-500 font-bold uppercase">Motivo do Ban:</label>
+                    <input type="text" id="ban-motivo" placeholder="Ex: Inatividade, Modo proibido..." class="w-full bg-slate-800 p-3 rounded-lg mt-1 outline-none">
+                </div>
+                <div class="flex gap-2 pt-4">
+                    <button onclick="closeBan()" class="flex-1 text-slate-500 font-bold uppercase text-xs">Cancelar</button>
+                    <button onclick="confirmarBan()" class="flex-1 bg-red-600 text-white font-bold py-3 rounded-lg uppercase text-xs">EXECUTAR BAN</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Edição -->
-    <div id="modal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-50 backdrop-blur-xl">
-        <div class="glass max-w-md w-full p-8 rounded-3xl border border-white/10">
-            <h2 class="text-2xl font-black mb-6 text-white uppercase italic tracking-tighter italic">Editar Atividade</h2>
-            <form id="edit-form" class="space-y-5">
+    <!-- Modal Edição Membro -->
+    <div id="modal-edit" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-50">
+        <div class="glass max-w-md w-full p-8 rounded-2xl">
+            <h2 class="text-xl font-bold mb-6 text-white uppercase italic" id="edit-nick-title">Membro</h2>
+            <form id="edit-form" class="space-y-4">
                 <input type="hidden" id="edit-id">
-                <input type="text" id="edit-name" readonly class="w-full bg-transparent border-none p-0 rounded-lg text-amber-500 font-black text-xl">
-                
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase">Honra Atual</label>
-                        <input type="number" id="edit-honra" class="w-full bg-slate-900 border-none p-4 rounded-xl text-white outline-none ring-1 ring-white/5 focus:ring-amber-500">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase">Guerra Atual</label>
-                        <input type="number" id="edit-war" class="w-full bg-slate-900 border-none p-4 rounded-xl text-white outline-none ring-1 ring-white/5 focus:ring-amber-500">
-                    </div>
+                    <input type="number" id="edit-honra" placeholder="Honra" class="bg-slate-800 p-3 rounded-lg text-white outline-none">
+                    <input type="number" id="edit-war" placeholder="Guerra" class="bg-slate-800 p-3 rounded-lg text-white outline-none">
                 </div>
-
-                <div>
-                    <label class="text-[9px] font-black text-slate-500 uppercase">Status do Vídeo (Ex: Bermuda, Online, 1 dia...)</label>
-                    <input type="text" id="edit-status" class="w-full bg-slate-900 border-none p-4 rounded-xl text-white uppercase outline-none ring-1 ring-white/5 focus:ring-amber-500">
-                </div>
-
-                <div class="flex gap-3 pt-6">
-                    <button type="button" onclick="closeModal()" class="flex-1 text-slate-500 font-bold uppercase text-xs">Cancelar</button>
-                    <button type="submit" class="flex-1 bg-amber-500 text-black font-black py-4 rounded-2xl uppercase text-xs shadow-lg shadow-amber-500/20">Atualizar Dados</button>
+                <input type="text" id="edit-status" placeholder="Status: Online, Bermuda, 1 dia..." class="w-full bg-slate-800 p-3 rounded-lg text-white uppercase outline-none">
+                <div class="flex gap-2 pt-4">
+                    <button type="button" onclick="closeEdit()" class="flex-1 text-slate-500 font-bold uppercase text-xs">Sair</button>
+                    <button type="submit" class="flex-1 bg-amber-500 text-black font-bold py-3 rounded-lg uppercase text-xs">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        const initialMembers = [
-            {id: 1, name: "TTK ANGELLO", honra: 6097, war: 196, status: "JOGANDO", role: "lider"},
-            {id: 2, name: "TTK JOYCE", honra: 4513, war: 141, status: "1 HORA ATRÁS", role: "vice"},
-            {id: 3, name: "JR TRALHA", honra: 7691, war: 166, status: "47 MINUTOS ATRÁS"},
-            {id: 4, name: "Quebrada133", honra: 6224, war: 0, status: "6 HORAS ATRÁS"},
-            {id: 5, name: "TTK Lirlex", honra: 6163, war: 204, status: "ON-LINE"},
-            {id: 6, name: "Lm hugo", honra: 5458, war: 122, status: "JOGANDO"},
-            {id: 7, name: "TTK MTX9 444", honra: 5738, war: 177, status: "JOGANDO"},
-            {id: 8, name: "EL BOCHECHA", honra: 5874, war: 102, status: "3 HORAS ATRÁS"},
-            {id: 9, name: "CE Xavier!", honra: 4666, war: 141, status: "JOGANDO"},
-            {id: 10, name: "TTK CHADAL", honra: 2777, war: 109, status: "6 HORAS ATRÁS"},
-            {id: 11, name: "TTK dom_max", honra: 4495, war: 139, status: "JOGANDO"},
-            {id: 12, name: "RYANZINNN", honra: 2453, war: 68, status: "1 HORA ATRÁS"},
-            {id: 13, name: "egocentrismo", honra: 3780, war: 296, status: "ONLINE"},
-            {id: 14, name: "cearazim", honra: 1835, war: 83, status: "NA EQUIPE"},
-            {id: 15, name: "TTK VELAX1", honra: 2560, war: 89, status: "3 HORAS ATRÁS"},
-            {id: 16, name: "TTK ALEX", honra: 3211, war: 116, status: "ON-LINE"},
-            {id: 17, name: "ヅ LUIS", honra: 2942, war: 74, status: "JOGANDO"},
-            {id: 18, name: "Erick xat", honra: 2092, war: 66, status: "ON-LINE"},
-            {id: 19, name: "pTKing", honra: 1484, war: 0, status: "1 HORA ATRÁS"},
-            {id: 20, name: "SHARK1", honra: 2309, war: 128, status: "NA EQUIPE"},
-            {id: 21, name: "IGG SERRATH", honra: 1120, war: 100, status: "21 HORAS ATRÁS"},
-            {id: 22, name: "BICHA_MUDA", honra: 1296, war: 45, status: "10 MINUTOS ATRÁS"},
-            {id: 23, name: "BZ Vordex", honra: 1065, war: 188, status: "8 HORAS ATRÁS"},
-            {id: 24, name: "Biel calvo", honra: 3062, war: 69, status: "ON-LINE"},
-            {id: 25, name: "TTK IM LEEX", honra: 1685, war: 33, status: "3 HORAS ATRÁS"},
-            {id: 26, name: "L mami", honra: 941, war: 0, status: "5 HORAS ATRÁS"},
-            {id: 27, name: "Black.444", honra: 930, war: 20, status: "BERMUDA"},
-            {id: 28, name: "UMB Chipotle", honra: 1214, war: 85, status: "JOGANDO"},
-            {id: 29, name: "K OROCHI", honra: 786, war: 66, status: "30 MINUTOS ATRÁS"},
-            {id: 30, name: "Ellucky", honra: 1690, war: 117, status: "3 HORAS ATRÁS"},
-            {id: 31, name: "Tri evilex", honra: 622, war: 61, status: "21 HORAS ATRÁS"},
-            {id: 32, name: "DuallzE FF", honra: 447, war: 18, status: "5 HORAS ATRÁS"},
-            {id: 33, name: "Bizon xtd", honra: 479, war: 0, status: "29 MINUTOS ATRÁS"},
-            {id: 34, name: "100% m1014", honra: 465, war: 16, status: "7 MINUTOS ATRÁS"},
-            {id: 35, name: "f Tiago", honra: 609, war: 10, status: "NA EQUIPE"},
-            {id: 36, name: "ellow", honra: 300, war: 0, status: "1 DIA ATRÁS"},
-            {id: 37, name: "tk(buteco)", honra: 222, war: 0, status: "ELIMINADORES FF"},
-            {id: 38, name: "MP KOLLUA", honra: 853, war: 84, status: "1 DIA ATRÁS"},
-            {id: 39, name: "FX RAFA244", honra: 130, war: 0, status: "3 HORAS ATRÁS"},
-            {id: 40, name: "PM GANANCIA", honra: 130, war: 0, status: "15 MINUTOS ATRÁS"},
-            {id: 41, name: "XS AngelloTt", honra: 110, war: 0, status: "27 MINUTOS ATRÁS"},
-            {id: 42, name: "very p3dro", honra: 50, war: 0, status: "1 DIA ATRÁS"},
-            {id: 43, name: "very Garcia", honra: 0, war: 1, status: "1 DIA ATRÁS"},
-            {id: 44, name: "BZ nianaxy", honra: 0, war: 0, status: "7 MINUTOS ATRÁS"},
-            {id: 45, name: "aim hard", honra: 0, war: 0, status: "1 DIA ATRÁS"},
-            {id: 46, name: "guh awp", honra: 1585, war: 177, status: "3 HORAS ATRÁS"},
-            {id: 47, name: "wss chapado", honra: 1335, war: 46, status: "7 MINUTOS ATRÁS"},
-            {id: 48, name: "FK KAHZIM", honra: 174, war: 19, status: "JOGANDO"},
-            {id: 49, name: "ANONYN", honra: 2453, war: 68, status: "1 DIA ATRÁS"},
-            {id: 50, name: "BR Santos!", honra: 0, war: 0, status: "1 DIA ATRÁS"}
-        ];
+        const SB_URL = 'SUA_URL_AQUI';
+        const SB_KEY = 'SUA_KEY_AQUI';
+        const sb = supabase.createClient(SB_URL, SB_KEY);
 
-        let members = JSON.parse(localStorage.getItem('ttk_v_final')) || initialMembers;
+        let membros = [], avisos = [], banidos = [];
 
-        function checkBanStatus(status) {
-            if (!status) return false;
-            const s = status.toUpperCase();
+        async function fetchAll() {
+            const { data: m } = await sb.from('membros').select('*').order('honra', { ascending: false });
+            const { data: a } = await sb.from('avisos').select('*').order('id', { ascending: false });
+            const { data: b } = await sb.from('banidos').select('*').order('id', { ascending: false });
             
-            // SEGURO: Apenas se contiver estas palavras exatas
-            const safeKeywords = ["JOGANDO", "ONLINE", "ON-LINE", "NA EQUIPE", "MINUTO", "HORA"];
-            const isSafe = safeKeywords.some(word => s.includes(word));
-            
-            if (isSafe) return false;
-
-            // BANIMENTO: Qualquer outra coisa (Bermuda, Gladiadores, Dias, CS...)
-            return true;
+            if(m) membros = m; if(a) avisos = a; if(b) banidos = b;
+            renderAll();
         }
 
-        function render() {
-            const body = document.getElementById('table-body');
-            members.sort((a, b) => b.honra - a.honra);
-            body.innerHTML = '';
-            
-            let banCount = 0;
-            members.forEach((m, i) => {
-                const isBan = checkBanStatus(m.status);
-                const lowScore = m.honra < 5000 || m.war < 150;
-                if (isBan) banCount++;
+        function isBannable(status) {
+            if(!status) return false;
+            const s = status.toUpperCase();
+            const safe = ["JOGANDO", "ONLINE", "ON-LINE", "NA EQUIPE", "MINUTO", "HORA"];
+            return !safe.some(word => s.includes(word));
+        }
 
-                body.innerHTML += `
-                    <tr class="hover:bg-white/5 border-b border-white/5 transition-all ${isBan ? 'bg-red-500/5' : ''}">
-                        <td class="p-5 rank-font text-slate-700 font-bold text-lg">#${i+1}</td>
-                        <td class="p-5">
-                            <div class="flex items-center">
-                                <span class="font-bold ${lowScore ? 'text-danger' : 'text-white'}">${m.name}</span>
-                                ${m.role === 'lider' ? '<span class="tag-lider uppercase">Comandante</span>' : ''}
-                                ${m.role === 'vice' ? '<span class="tag-vice uppercase">Vice</span>' : ''}
-                            </div>
+        function renderAll() {
+            // RANKING
+            const rankBody = document.getElementById('table-ranking');
+            rankBody.innerHTML = '';
+            membros.forEach((m, i) => {
+                const ban = isBannable(m.status);
+                const low = m.honra < 5000 || m.war < 150;
+                rankBody.innerHTML += `
+                    <tr class="hover:bg-white/5 border-b border-white/5">
+                        <td class="p-4 font-bold text-slate-700">#${i+1}</td>
+                        <td class="p-4 font-bold ${low ? 'text-danger' : 'text-white'}">${m.nome}</td>
+                        <td class="p-4 text-center font-mono ${m.honra < 5000 ? 'text-red-400' : 'text-amber-500'}">${m.honra}</td>
+                        <td class="p-4 text-center font-mono ${m.war < 150 ? 'text-red-400' : 'text-green-500'}">${m.war}</td>
+                        <td class="p-4">
+                            <span class="text-[10px] font-bold uppercase text-slate-500">${m.status || 'Offline'}</span>
+                            ${ban ? '<br><span class="badge-ban">PENDENTE BAN</span>' : ''}
                         </td>
-                        <td class="p-5 text-center font-mono ${m.honra < 5000 ? 'text-red-400' : 'text-amber-500'}">${m.honra.toLocaleString()}</td>
-                        <td class="p-5 text-center font-mono ${m.war < 150 ? 'text-red-400' : 'text-green-500'}">${m.war}</td>
-                        <td class="p-5">
-                            <div class="flex flex-col">
-                                <span class="text-[10px] uppercase font-bold text-slate-400">${m.status || 'OFFLINE'}</span>
-                                ${isBan ? '<span class="badge-ban w-fit mt-1 uppercase">Pendente Banimento</span>' : ''}
-                            </div>
-                        </td>
-                        <td class="p-5 text-right">
-                            <button onclick="openEdit(${m.id})" class="text-slate-500 hover:text-amber-500 transition-all scale-125"><i class="fas fa-pen-nib"></i></button>
+                        <td class="p-4 text-right flex justify-end gap-2">
+                            <button onclick="openEdit(${m.id})" class="text-slate-500 hover:text-white"><i class="fas fa-edit"></i></button>
+                            <button onclick="openBan('${m.nome}')" class="text-red-900 hover:text-red-500"><i class="fas fa-user-slash"></i></button>
                         </td>
                     </tr>
                 `;
             });
 
-            document.getElementById('stat-count').innerText = `${members.length}/55`;
-            document.getElementById('stat-ban').innerText = banCount;
-            localStorage.setItem('ttk_v_final', JSON.stringify(members));
-        }
+            // AVISOS
+            const avisoDiv = document.getElementById('lista-avisos');
+            avisoDiv.innerHTML = '';
+            avisos.forEach(a => {
+                avisoDiv.innerHTML += `
+                    <div class="glass p-4 rounded-xl border-l-4 border-blue-500 relative">
+                        <p class="text-white font-medium">${a.mensagem}</p>
+                        <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase">Postado por: ${a.autor}</p>
+                        <button onclick="deletarAviso(${a.id})" class="absolute top-4 right-4 text-slate-800 hover:text-red-500"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+            });
 
-        function openEdit(id) {
-            const m = members.find(x => x.id == id);
-            document.getElementById('edit-id').value = m.id;
-            document.getElementById('edit-name').value = m.name;
-            document.getElementById('edit-honra').value = m.honra;
-            document.getElementById('edit-war').value = m.war;
-            document.getElementById('edit-status').value = m.status;
-            document.getElementById('modal').classList.remove('hidden');
-        }
-
-        document.getElementById('edit-form').onsubmit = (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit-id').value;
-            const idx = members.findIndex(x => x.id == id);
-            
-            members[idx].honra = parseInt(document.getElementById('edit-honra').value);
-            members[idx].war = parseInt(document.getElementById('edit-war').value);
-            members[idx].status = document.getElementById('edit-status').value.toUpperCase();
-
-            closeModal();
-            render();
-        };
-
-        function resetData() {
-            if(confirm("Deseja restaurar as configurações de fábrica da guilda?")) {
-                localStorage.removeItem('ttk_v_final');
-                location.reload();
-            }
-        }
-
-        function filter() {
-            const q = document.getElementById('search').value.toLowerCase();
-            const rows = document.querySelectorAll('#table-body tr');
-            rows.forEach(row => {
-                row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+            // BANIDOS
+            const banDiv = document.getElementById('lista-banidos');
+            banDiv.innerHTML = '';
+            banidos.forEach(b => {
+                banDiv.innerHTML += `
+                    <div class="glass p-5 rounded-2xl border border-red-900/30">
+                        <h4 class="text-red-500 font-black uppercase text-sm mb-2 italic">NICK: ${b.nick}</h4>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Aplicado por: <span class="text-white">${b.aplicado_por}</span></p>
+                        <p class="text-xs text-slate-400 font-bold uppercase mt-1">Motivo: <span class="text-white">${b.motivo}</span></p>
+                    </div>
+                `;
             });
         }
 
-        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-        render();
+        // FUNÇÕES DE AÇÃO
+        async function postarAviso() {
+            const msg = document.getElementById('aviso-msg').value;
+            const aut = document.getElementById('aviso-autor').value;
+            if(!msg) return;
+            await sb.from('avisos').insert([{ mensagem: msg, autor: aut }]);
+            document.getElementById('aviso-msg').value = '';
+            fetchAll();
+        }
+
+        async function deletarAviso(id) {
+            await sb.from('avisos').delete().eq('id', id);
+            fetchAll();
+        }
+
+        function openBan(nick) {
+            document.getElementById('ban-nick').innerText = nick;
+            document.getElementById('modal-ban').classList.remove('hidden');
+        }
+
+        async function confirmarBan() {
+            const nick = document.getElementById('ban-nick').innerText;
+            const aut = document.getElementById('ban-autor').value;
+            const mot = document.getElementById('ban-motivo').value || "Inatividade";
+            
+            await sb.from('banidos').insert([{ nick: nick, aplicado_por: aut, motivo: mot }]);
+            // Opcional: Remover da tabela de membros
+            // await sb.from('membros').delete().eq('nome', nick);
+            
+            closeBan();
+            fetchAll();
+        }
+
+        // NAVEGAÇÃO E MODAIS
+        function showTab(t) {
+            ['ranking', 'avisos', 'banidos'].forEach(tab => {
+                document.getElementById(`tab-${tab}`).classList.add('hidden');
+                document.getElementById(`btn-${tab}`).classList.remove('tab-active');
+                document.getElementById(`btn-${tab}`).classList.add('text-slate-500');
+            });
+            document.getElementById(`tab-${t}`).classList.remove('hidden');
+            document.getElementById(`btn-${t}`).classList.add('tab-active');
+        }
+
+        function openEdit(id) {
+            const m = membros.find(x => x.id == id);
+            document.getElementById('edit-id').value = m.id;
+            document.getElementById('edit-nick-title').innerText = m.nome;
+            document.getElementById('edit-honra').value = m.honra;
+            document.getElementById('edit-war').value = m.war;
+            document.getElementById('edit-status').value = m.status;
+            document.getElementById('modal-edit').classList.remove('hidden');
+        }
+
+        document.getElementById('edit-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const up = {
+                honra: parseInt(document.getElementById('edit-honra').value),
+                war: parseInt(document.getElementById('edit-war').value),
+                status: document.getElementById('edit-status').value.toUpperCase()
+            };
+            await sb.from('membros').update(up).eq('id', id);
+            closeEdit(); fetchAll();
+        };
+
+        function closeBan() { document.getElementById('modal-ban').classList.add('hidden'); }
+        function closeEdit() { document.getElementById('modal-edit').classList.add('hidden'); }
+        
+        fetchAll();
     </script>
 </body>
 </html>
