@@ -3,134 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTK BRASIL | Painel de Comando Oficial</title>
+    <title>TTK BRASIL | Painel Supremo de Gestão</title>
+    
+    <!-- Frameworks e Ícones -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&family=Inter:wght@400;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #05070a; color: #e2e8f0; }
-        .glass { background: #0d111a; border: 1px solid rgba(255,255,255,0.05); }
-        .text-danger { color: #ff3e3e !important; }
-        .tab-active { border-bottom: 2px solid #fbbf24; color: #fbbf24; }
-        .badge-ban { background: rgba(255, 62, 62, 0.2); color: #ff3e3e; border: 1px solid #ff3e3e; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 900; }
-        .tag-lider { background: #fbbf24; color: #000; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 8px; }
-        .tag-vice { background: #94a3b8; color: #000; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 8px; }
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;600;800&display=swap');
+        
+        :root {
+            --gold: #fbbf24;
+            --bg: #05070a;
+            --card: #0d111a;
+            --danger: #ff3e3e;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: #e2e8f0; 
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .font-heading { font-family: 'Montserrat', sans-serif; }
+
+        .glass { 
+            background: rgba(13, 17, 26, 0.8); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(251, 191, 36, 0.05); 
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            color: #000;
+            font-weight: 900;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(217, 119, 6, 0.2);
+            filter: brightness(1.1);
+        }
+
+        .tab-btn {
+            border-bottom: 3px solid transparent;
+            color: #64748b;
+            font-weight: 800;
+            padding-bottom: 15px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        .tab-btn.active {
+            color: var(--gold);
+            border-color: var(--gold);
+        }
+
+        .text-danger { color: var(--danger) !important; font-weight: 800; }
+        .badge-ban { background: rgba(255, 62, 62, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+        
+        .tag-admin { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; margin-left: 8px; }
+        .tag-lider { background: var(--gold); color: #000; }
+        .tag-vice { background: #94a3b8; color: #000; }
+
+        /* Esconder scrollbar lateral em dispositivos móveis */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-10">
 
     <div class="max-w-6xl mx-auto">
         <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-            <h1 class="text-4xl font-black uppercase italic tracking-tighter text-white">TTK <span class="text-amber-500">BRASIL</span></h1>
-            <div class="flex gap-4">
-                <button onclick="fetchAll()" class="bg-amber-500 text-black font-bold px-6 py-2 rounded-lg hover:bg-amber-600 transition flex items-center gap-2">
-                    <i class="fas fa-sync-alt"></i> ATUALIZAR TUDO
-                </button>
+        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+            <div class="text-center md:text-left">
+                <h1 class="text-5xl font-black italic tracking-tighter uppercase text-white">TTK <span class="text-amber-500">BRASIL</span></h1>
+                <p class="text-slate-600 text-[10px] font-bold tracking-[0.4em] uppercase mt-2">Elite Management System</p>
             </div>
+            <button onclick="fetchAll()" class="btn-premium px-10 py-4 rounded-2xl flex items-center gap-3">
+                <i class="fas fa-sync-alt"></i> ATUALIZAR TUDO
+            </button>
         </header>
 
-        <!-- Navegação de Abas -->
-        <nav class="flex gap-8 border-b border-white/10 mb-8 font-bold uppercase text-xs tracking-widest overflow-x-auto">
-            <button onclick="showTab('ranking')" id="btn-ranking" class="pb-4 tab-active whitespace-nowrap">Ranking de Honra</button>
-            <button onclick="showTab('avisos')" id="btn-avisos" class="pb-4 text-slate-500 whitespace-nowrap">Lista de Avisos</button>
-            <button onclick="showTab('banidos')" id="btn-banidos" class="pb-4 text-slate-500 whitespace-nowrap">Mural de Banidos</button>
+        <!-- Menu de Abas -->
+        <nav class="flex gap-10 mb-10 border-b border-white/5 overflow-x-auto no-scrollbar">
+            <button onclick="showTab('ranking')" id="btn-ranking" class="tab-btn active">Ranking de Honra</button>
+            <button onclick="showTab('avisos')" id="btn-avisos" class="tab-btn">Lista de Avisos</button>
+            <button onclick="showTab('banidos')" id="btn-banidos" class="tab-btn">Mural de Banidos</button>
         </nav>
 
-        <!-- ABA: RANKING -->
+        <!-- ABA 1: RANKING -->
         <div id="tab-ranking" class="space-y-4">
-            <div class="glass rounded-2xl overflow-hidden shadow-2xl">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-900 text-[10px] uppercase text-slate-500 font-bold">
-                        <tr>
-                            <th class="p-4">#</th>
-                            <th class="p-4">Nickname</th>
-                            <th class="p-4 text-center">Honra (5k)</th>
-                            <th class="p-4 text-center">Guerra (150)</th>
-                            <th class="p-4">Status / Alerta</th>
-                            <th class="p-4 text-right">Gestão</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-ranking" class="divide-y divide-white/5">
-                        <!-- Gerado automaticamente -->
-                    </tbody>
-                </table>
+            <div class="glass rounded-[2rem] overflow-hidden shadow-2xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-900/50 text-slate-500 text-[10px] uppercase font-black tracking-widest">
+                            <tr>
+                                <th class="p-6">#</th>
+                                <th class="p-6">Guerreiro</th>
+                                <th class="p-6 text-center">Honra (5k)</th>
+                                <th class="p-6 text-center">Guerra (150)</th>
+                                <th class="p-6">Status</th>
+                                <th class="p-6 text-right">Gestão</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-ranking" class="divide-y divide-white/5">
+                            <!-- JS Injects Here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- ABA: AVISOS -->
+        <!-- ABA 2: AVISOS -->
         <div id="tab-avisos" class="hidden space-y-6">
-            <div class="glass p-6 rounded-2xl">
-                <h3 class="font-bold mb-4 uppercase text-amber-500 text-sm">Postar Novo Aviso</h3>
-                <div class="flex flex-col md:flex-row gap-2">
-                    <input type="text" id="aviso-msg" placeholder="Digite o aviso para a guilda..." class="flex-1 bg-slate-900 p-3 rounded-lg outline-none text-white border border-white/5">
-                    <select id="aviso-autor" class="bg-slate-900 p-3 rounded-lg outline-none text-white border border-white/5">
+            <div class="glass p-8 rounded-3xl">
+                <h3 class="text-amber-500 font-black uppercase text-xs mb-6 tracking-widest">Postar Comunicado</h3>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <input type="text" id="aviso-msg" placeholder="Digite a mensagem oficial..." class="flex-1 bg-black/40 border border-white/10 p-4 rounded-xl outline-none focus:border-amber-500 text-white">
+                    <select id="aviso-autor" class="bg-slate-900 border border-white/10 p-4 rounded-xl text-white font-bold outline-none">
                         <option value="TTK ANGELLO">ANGELLO (Líder)</option>
                         <option value="TTK JOYCE">JOYCE (Vice)</option>
                     </select>
-                    <button onclick="postarAviso()" class="bg-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition">POSTAR</button>
+                    <button onclick="postarAviso()" class="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-xl font-black text-xs uppercase transition">Publicar</button>
                 </div>
             </div>
             <div id="lista-avisos" class="grid gap-4"></div>
         </div>
 
-        <!-- ABA: BANIDOS -->
-        <div id="tab-banidos" class="hidden space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="lista-banidos"></div>
+        <!-- ABA 3: BANIDOS -->
+        <div id="tab-banidos" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Cards de Banimento -->
         </div>
     </div>
 
-    <!-- Modal Banimento Manual -->
-    <div id="modal-ban" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-        <div class="glass max-w-md w-full p-8 rounded-2xl border border-red-500/20">
-            <h2 class="text-xl font-black text-red-500 uppercase mb-4 italic">Executar Banimento</h2>
-            <div class="space-y-4">
-                <p class="text-white font-bold">Nick do Jogador: <span id="ban-nick" class="text-amber-500 text-xl">-</span></p>
-                <div>
-                    <label class="text-[10px] text-slate-500 font-bold uppercase">Aplicado por:</label>
-                    <select id="ban-autor" class="w-full bg-slate-800 p-3 rounded-lg mt-1 outline-none text-white">
-                        <option value="TTK ANGELLO">TTK ANGELLO</option>
-                        <option value="TTK JOYCE">TTK JOYCE</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-[10px] text-slate-500 font-bold uppercase">Motivo Oficial:</label>
-                    <input type="text" id="ban-motivo" placeholder="Inatividade, Modo Proibido, etc..." class="w-full bg-slate-800 p-3 rounded-lg mt-1 outline-none text-white">
-                </div>
-                <div class="flex gap-2 pt-4">
-                    <button onclick="closeBan()" class="flex-1 text-slate-500 font-bold uppercase text-xs">Cancelar</button>
-                    <button onclick="confirmarBan()" class="flex-1 bg-red-600 text-white font-bold py-3 rounded-lg uppercase text-xs">CONFIRMAR EXPULSÃO</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Edição Membro -->
-    <div id="modal-edit" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-        <div class="glass max-w-md w-full p-8 rounded-2xl border border-amber-500/20">
-            <h2 class="text-xl font-bold mb-6 text-white uppercase italic" id="edit-nick-title">Membro</h2>
+    <!-- MODAL: EDIÇÃO DE MEMBRO -->
+    <div id="modal-edit" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-50 backdrop-blur-md">
+        <div class="glass max-w-md w-full p-8 rounded-[2rem]">
+            <h2 class="text-2xl font-black text-white uppercase italic mb-6 tracking-tighter" id="edit-title">Membro</h2>
             <form id="edit-form" class="space-y-4">
                 <input type="hidden" id="edit-id">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-[10px] text-slate-500 font-bold uppercase">Honra Atual</label>
-                        <input type="number" id="edit-honra" class="w-full bg-slate-800 p-3 rounded-lg text-white outline-none">
+                        <label class="text-[10px] text-slate-500 font-black uppercase">Honra</label>
+                        <input type="number" id="edit-honra" class="w-full bg-slate-800 p-4 rounded-xl text-white outline-none">
                     </div>
                     <div>
-                        <label class="text-[10px] text-slate-500 font-bold uppercase">Guerra Atual</label>
-                        <input type="number" id="edit-guerra" class="w-full bg-slate-800 p-3 rounded-lg text-white outline-none">
+                        <label class="text-[10px] text-slate-500 font-black uppercase">Guerra</label>
+                        <input type="number" id="edit-guerra" class="w-full bg-slate-800 p-4 rounded-xl text-white outline-none">
                     </div>
                 </div>
                 <div>
-                    <label class="text-[10px] text-slate-500 font-bold uppercase">Status do Jogo (Ex: Online, Bermuda, 1 dia...)</label>
-                    <input type="text" id="edit-status" class="w-full bg-slate-800 p-3 rounded-lg text-white uppercase outline-none">
+                    <label class="text-[10px] text-slate-500 font-black uppercase">Status (Ex: Online, 1 dia atrás...)</label>
+                    <input type="text" id="edit-status" class="w-full bg-slate-800 p-4 rounded-xl text-white uppercase outline-none">
                 </div>
                 <div class="flex gap-2 pt-4">
                     <button type="button" onclick="closeEdit()" class="flex-1 text-slate-500 font-bold uppercase text-xs">Sair</button>
-                    <button type="submit" class="flex-1 bg-amber-500 text-black font-bold py-3 rounded-lg uppercase text-xs">Salvar Alterações</button>
+                    <button type="submit" class="flex-1 bg-amber-500 text-black font-black py-4 rounded-xl uppercase text-xs">Salvar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL: EXECUTAR BANIMENTO -->
+    <div id="modal-ban" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-50 backdrop-blur-xl">
+        <div class="glass max-w-md w-full p-10 rounded-[2.5rem] border border-red-500/20">
+            <h2 class="text-3xl font-black text-red-500 uppercase italic mb-8">Confirmar Expulsão</h2>
+            <div class="space-y-6">
+                <div class="bg-red-500/5 p-4 rounded-2xl">
+                    <p class="text-[10px] text-slate-500 font-black uppercase">Nickname</p>
+                    <p id="ban-nick-display" class="text-2xl font-black uppercase text-white tracking-tighter">-</p>
+                    <input type="hidden" id="ban-id-ref">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-500 font-black uppercase ml-1">Aplicado por:</label>
+                    <select id="ban-autor" class="w-full bg-slate-900 border border-white/5 p-4 rounded-xl mt-1 text-white font-bold outline-none">
+                        <option value="TTK ANGELLO">TTK ANGELLO</option>
+                        <option value="TTK JOYCE">TTK JOYCE</option>
+                    </select>
+                </div>
+                <input type="text" id="ban-motivo" placeholder="Motivo do Banimento..." class="w-full bg-slate-900 border border-white/5 p-4 rounded-xl text-white outline-none">
+                <div class="flex gap-4 pt-6">
+                    <button onclick="closeBan()" class="flex-1 font-bold text-slate-500 uppercase text-xs">Cancelar</button>
+                    <button onclick="confirmarBan()" class="flex-1 bg-red-600 text-white font-black py-5 rounded-2xl uppercase text-xs shadow-xl shadow-red-600/20">EXECUTAR</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -142,85 +203,110 @@
 
         let membros = [], avisos = [], banidos = [];
 
+        // BUSCAR TUDO
         async function fetchAll() {
             const { data: m } = await sb.from('membros').select('*').order('honra', { ascending: false });
             const { data: a } = await sb.from('avisos').select('*').order('id', { ascending: false });
             const { data: b } = await sb.from('banidos').select('*').order('id', { ascending: false });
             
-            if(m) membros = m; if(a) avisos = a; if(b) banidos = b;
-            renderAll();
+            membros = m || []; avisos = a || []; banidos = b || [];
+            render();
         }
 
-        // LÓGICA DE BANIMENTO: JOGANDO, ONLINE, NA EQUIPE, MINUTOS E HORAS SÃO SEGUROS. O RESTO BANE.
+        // LÓGICA DE BANIMENTO: SEGURO (NÃO BANE) APENAS SE ESTIVER ATIVO
         function isBannable(status) {
             if(!status) return false;
             const s = status.toUpperCase();
-            const safeKeywords = ["JOGANDO", "ONLINE", "ON-LINE", "NA EQUIPE", "MINUTO", "HORA"];
-            const isSafe = safeKeywords.some(word => s.includes(word));
-            return !isSafe;
+            const safe = ["JOGANDO", "ONLINE", "ON-LINE", "NA EQUIPE", "MINUTO", "HORA"];
+            return !safe.some(word => s.includes(word));
         }
 
-        function renderAll() {
-            // RANKING
-            const rankBody = document.getElementById('table-ranking');
-            rankBody.innerHTML = '';
+        // RENDERIZAR TUDO NA TELA
+        function render() {
+            // Ranking
+            const body = document.getElementById('table-ranking');
+            body.innerHTML = '';
             membros.forEach((m, i) => {
                 const ban = isBannable(m.status);
-                const low = m.honra < 5000 || m.guerra < 150;
-                rankBody.innerHTML += `
-                    <tr class="hover:bg-white/5 border-b border-white/5 transition-all">
-                        <td class="p-4 font-bold text-slate-700">#${i+1}</td>
-                        <td class="p-4">
+                const lowScore = m.honra < 5000 || m.guerra < 150;
+                body.innerHTML += `
+                    <tr class="hover:bg-white/[0.02] border-b border-white/5 transition">
+                        <td class="p-6 font-black text-slate-800 italic text-xl">#${i+1}</td>
+                        <td class="p-6">
                             <div class="flex items-center">
-                                <span class="font-bold ${low ? 'text-danger' : 'text-white'}">${m.nome}</span>
-                                ${m.nome === 'TTK ANGELLO' ? '<span class="tag-lider">LÍDER</span>' : ''}
-                                ${m.nome === 'TTK JOYCE' ? '<span class="tag-vice">VICE</span>' : ''}
+                                <span class="font-black ${lowScore ? 'text-danger' : 'text-white'} text-sm uppercase tracking-tighter">${m.nome}</span>
+                                ${m.nome === 'TTK ANGELLO' ? '<span class="tag-admin tag-lider uppercase">Líder</span>' : ''}
+                                ${m.nome === 'TTK JOYCE' ? '<span class="tag-admin tag-vice uppercase">Vice</span>' : ''}
                             </div>
                         </td>
-                        <td class="p-4 text-center font-mono ${m.honra < 5000 ? 'text-red-400' : 'text-amber-500'}">${m.honra}</td>
-                        <td class="p-4 text-center font-mono ${m.guerra < 150 ? 'text-red-400' : 'text-green-500'}">${m.guerra}</td>
-                        <td class="p-4">
-                            <span class="text-[10px] font-bold uppercase text-slate-500">${m.status || 'OFFLINE'}</span>
-                            ${ban ? '<br><span class="badge-ban">PENDENTE BAN</span>' : ''}
+                        <td class="p-6 text-center font-mono font-bold ${m.honra < 5000 ? 'text-red-500' : 'text-amber-500'}">${m.honra.toLocaleString()}</td>
+                        <td class="p-6 text-center font-mono font-bold ${m.guerra < 150 ? 'text-red-500' : 'text-green-500'}">${m.guerra}</td>
+                        <td class="p-6">
+                            <div class="flex flex-col">
+                                <span class="text-[9px] font-black uppercase text-slate-500">${m.status || 'Offline'}</span>
+                                ${ban ? '<span class="badge-ban w-fit mt-1 px-2 py-0.5 rounded font-black text-[8px] uppercase">Pendente Ban</span>' : ''}
+                            </div>
                         </td>
-                        <td class="p-4 text-right flex justify-end gap-2">
-                            <button onclick="openEdit(${m.id})" class="text-slate-500 hover:text-white p-2"><i class="fas fa-edit"></i></button>
-                            <button onclick="openBan('${m.nome}')" class="text-red-900 hover:text-red-500 p-2"><i class="fas fa-user-slash"></i></button>
+                        <td class="p-6 text-right flex justify-end gap-3">
+                            <button onclick="openEdit(${m.id})" class="text-slate-600 hover:text-white p-2"><i class="fas fa-edit"></i></button>
+                            <button onclick="openBan(${m.id}, '${m.nome}')" class="text-red-900 hover:text-red-500 p-2"><i class="fas fa-user-slash"></i></button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
 
-            // AVISOS
-            const avisoDiv = document.getElementById('lista-avisos');
-            avisoDiv.innerHTML = '';
+            // Avisos
+            const avDiv = document.getElementById('lista-avisos');
+            avDiv.innerHTML = '';
             avisos.forEach(a => {
-                avisoDiv.innerHTML += `
-                    <div class="glass p-5 rounded-xl border-l-4 border-amber-500 relative animate-fade-in">
-                        <p class="text-white font-medium text-lg italic">"${a.mensagem}"</p>
-                        <p class="text-[9px] text-slate-500 font-bold mt-3 uppercase tracking-widest">Postado por: ${a.autor}</p>
-                        <button onclick="deletarAviso(${a.id})" class="absolute top-4 right-4 text-slate-800 hover:text-red-500"><i class="fas fa-times"></i></button>
-                    </div>
-                `;
+                avDiv.innerHTML += `
+                    <div class="glass p-6 rounded-2xl border-l-4 border-amber-500 relative">
+                        <p class="text-white font-bold italic text-lg">"${a.mensagem}"</p>
+                        <p class="text-[9px] text-slate-500 font-black mt-3 uppercase tracking-widest">Autoridade: ${a.autor}</p>
+                        <button onclick="deletarAviso(${a.id})" class="absolute top-4 right-4 text-slate-800 hover:text-red-500"><i class="fas fa-times-circle"></i></button>
+                    </div>`;
             });
 
-            // BANIDOS
-            const banDiv = document.getElementById('lista-banidos');
+            // Banidos
+            const banDiv = document.getElementById('tab-banidos');
             banDiv.innerHTML = '';
             banidos.forEach(b => {
                 banDiv.innerHTML += `
-                    <div class="glass p-5 rounded-2xl border border-red-900/30 bg-red-500/5">
-                        <h4 class="text-red-500 font-black uppercase text-sm mb-3 italic">Nick: ${b.nick}</h4>
+                    <div class="glass p-6 rounded-3xl border border-red-500/10 bg-red-500/5">
+                        <h4 class="text-red-500 font-black uppercase text-xs mb-3 tracking-tighter">Nick: ${b.nick}</h4>
                         <div class="space-y-1">
-                            <p class="text-[10px] text-slate-500 font-bold uppercase">Aplicado por: <span class="text-white">${b.aplicado_por}</span></p>
-                            <p class="text-[10px] text-slate-500 font-bold uppercase">Motivo: <span class="text-white italic">"${b.motivo}"</span></p>
+                            <p class="text-[9px] text-slate-500 font-black uppercase">Aplicado por: <span class="text-white">${b.aplicado_por}</span></p>
+                            <p class="text-[9px] text-slate-500 font-black uppercase">Motivo: <span class="text-white italic">"${b.motivo}"</span></p>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
 
-        // AÇÕES DO SISTEMA
+        // --- FUNÇÕES DE BANIMENTO (MOVER DE TABELA) ---
+        async function confirmarBan() {
+            const id = document.getElementById('ban-id-ref').value;
+            const nick = document.getElementById('ban-nick-display').innerText;
+            const aut = document.getElementById('ban-autor').value;
+            const mot = document.getElementById('ban-motivo').value || "Baixo desempenho / Inatividade";
+
+            // 1. Mover para Tabela de Banidos
+            const { error: err1 } = await sb.from('banidos').insert([{ 
+                nick: nick, 
+                aplicado_por: aut, 
+                motivo: mot 
+            }]);
+
+            // 2. Deletar da Tabela de Membros
+            const { error: err2 } = await sb.from('membros').delete().eq('id', id);
+
+            if(!err1 && !err2) {
+                closeBan();
+                fetchAll(); // Recarrega a tela
+            } else {
+                alert("Erro ao executar banimento.");
+            }
+        }
+
+        // --- OUTRAS AÇÕES ---
         async function postarAviso() {
             const msg = document.getElementById('aviso-msg').value;
             const aut = document.getElementById('aviso-autor').value;
@@ -231,52 +317,11 @@
         }
 
         async function deletarAviso(id) {
-            if(confirm("Deseja apagar este aviso?")) {
-                await sb.from('avisos').delete().eq('id', id);
-                fetchAll();
-            }
-        }
-
-        function openBan(nick) {
-            document.getElementById('ban-nick').innerText = nick;
-            document.getElementById('modal-ban').classList.remove('hidden');
-        }
-
-        async function confirmarBan() {
-            const nick = document.getElementById('ban-nick').innerText;
-            const aut = document.getElementById('ban-autor').value;
-            const mot = document.getElementById('ban-motivo').value || "Inatividade";
-            
-            await sb.from('banidos').insert([{ nick: nick, aplicado_por: aut, motivo: mot }]);
-            // Opcional: remover da tabela de membros automaticamente
-            // await sb.from('membros').delete().eq('nome', nick);
-            
-            closeBan();
+            await sb.from('avisos').delete().eq('id', id);
             fetchAll();
         }
 
-        // MODAIS E ABAS
-        function showTab(t) {
-            ['ranking', 'avisos', 'banidos'].forEach(tab => {
-                document.getElementById(`tab-${tab}`).classList.add('hidden');
-                document.getElementById(`btn-${tab}`).classList.remove('tab-active');
-                document.getElementById(`btn-${tab}`).classList.add('text-slate-500');
-            });
-            document.getElementById(`tab-${t}`).classList.remove('hidden');
-            document.getElementById(`btn-${t}`).classList.add('tab-active');
-        }
-
-        function openEdit(id) {
-            const m = membros.find(x => x.id == id);
-            document.getElementById('edit-id').value = m.id;
-            document.getElementById('edit-nick-title').innerText = m.nome;
-            document.getElementById('edit-honra').value = m.honra;
-            document.getElementById('edit-guerra').value = m.guerra;
-            document.getElementById('edit-status').value = m.status;
-            document.getElementById('modal-edit').classList.remove('hidden');
-        }
-
-        document.getElementById('edit-form').onsubmit = async (e) => {
+        async function updateMembro(e) {
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
             const up = {
@@ -287,12 +332,37 @@
             await sb.from('membros').update(up).eq('id', id);
             closeEdit(); 
             fetchAll();
-        };
+        }
 
-        function closeBan() { document.getElementById('modal-ban').classList.add('hidden'); document.getElementById('ban-motivo').value = ''; }
+        // --- GESTÃO DE MODAIS E ABAS ---
+        function showTab(t) {
+            ['ranking', 'avisos', 'banidos'].forEach(tab => {
+                document.getElementById(`tab-${tab}`).classList.toggle('hidden', tab !== t);
+                document.getElementById(`btn-${tab}`).classList.toggle('active', tab === t);
+            });
+        }
+
+        function openEdit(id) {
+            const m = membros.find(x => x.id == id);
+            document.getElementById('edit-id').value = m.id;
+            document.getElementById('edit-title').innerText = m.nome;
+            document.getElementById('edit-honra').value = m.honra;
+            document.getElementById('edit-guerra').value = m.guerra;
+            document.getElementById('edit-status').value = m.status;
+            document.getElementById('modal-edit').classList.remove('hidden');
+        }
+
+        function openBan(id, nick) {
+            document.getElementById('ban-nick-display').innerText = nick;
+            document.getElementById('ban-id-ref').value = id;
+            document.getElementById('modal-ban').classList.remove('hidden');
+        }
+
         function closeEdit() { document.getElementById('modal-edit').classList.add('hidden'); }
-        
-        // Iniciar
+        function closeBan() { document.getElementById('modal-ban').classList.add('hidden'); }
+        document.getElementById('edit-form').onsubmit = updateMembro;
+
+        // Inicialização
         fetchAll();
     </script>
 </body>
