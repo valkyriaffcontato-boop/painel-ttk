@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTK BRASIL | Painel Supremo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@400;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #020617; color: #fff; }
+        .premium-card { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(234, 179, 8, 0.1); border-radius: 30px; }
+        .gold-text { background: linear-gradient(to right, #facc15, #a16207); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Montserrat'; }
+        .tab-btn { padding: 10px 20px; font-weight: bold; color: #64748b; transition: 0.3s; }
+        .tab-btn.active { color: #facc15; border-bottom: 2px solid #facc15; }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+    <div id="login-screen" class="fixed inset-0 bg-[#020617] flex items-center justify-center z-[200]">
+        <div class="premium-card p-10 w-full max-w-sm text-center">
+            <h1 class="text-4xl gold-text mb-8">TTK BRASIL</h1>
+            <input type="password" id="pass" placeholder="Senha da Liderança" class="w-full bg-black/40 p-4 rounded-2xl mb-4 outline-none border border-white/5 focus:border-yellow-500">
+            <button onclick="login()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-2xl shadow-xl shadow-yellow-500/10">ACESSAR PAINEL</button>
+        </div>
+    </div>
+
+    <div id="dashboard" class="max-w-6xl mx-auto hidden">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-5xl gold-text italic">TTK BRASIL</h1>
+                <p class="text-[10px] tracking-[0.5em] text-slate-500 font-bold uppercase mt-2">Gestão de Elite Unificada</p>
+            </div>
+            <button onclick="fetchAll()" class="bg-yellow-500 text-black px-8 py-3 rounded-full font-black text-xs">SINCRONIZAR</button>
+        </header>
+
+        <nav class="flex gap-4 mb-8 border-b border-white/5">
+            <button onclick="showTab('ranking')" id="btn-ranking" class="tab-btn active">RANKING</button>
+            <button onclick="showTab('adv')" id="btn-adv" class="tab-btn">ADVERTÊNCIAS</button>
+            <button onclick="showTab('ban')" id="btn-ban" class="tab-btn">BANIDOS</button>
+        </nav>
+
+        <div id="tab-ranking" class="premium-card overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-black/20 text-[10px] text-slate-500 uppercase font-black">
+                    <tr><th class="p-6">Soldado / UID</th><th class="p-6 text-center">Honra</th><th class="p-6 text-center">Guerra</th><th class="p-6 text-right">Ação</th></tr>
+                </thead>
+                <tbody id="table-ranking" class="divide-y divide-white/5"></tbody>
+            </table>
+        </div>
+        
+        <!-- Outras abas (ADVs e Bans) seguem a mesma lógica visual -->
+    </div>
+
+    <script>
+        const SB_URL = 'https://docrdiftmbozveolevec.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvY3JkaWZ0bWJvenZlb2xldmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MTA5NjcsImV4cCI6MjA4OTA4Njk2N30.lutrywrjLsaF2sSUFOqTiC75ZrscHsrQ9KOlR-vuXkU';
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+
+        function login() {
+            if(document.getElementById('pass').value === 'ttk123') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                fetchAll();
+            }
+        }
+
+        async function fetchAll() {
+            const { data } = await sb.from('membros').select('*').order('honra', { ascending: false });
+            const body = document.getElementById('table-ranking');
+            body.innerHTML = '';
+            data.forEach((m, i) => {
+                const low = m.honra < 5000 || m.guerra < 150;
+                body.innerHTML += `
+                    <tr class="hover:bg-white/[0.02]">
+                        <td class="p-6">
+                            <div class="font-bold ${low ? 'text-red-500' : 'text-white'} text-sm">${m.nome}</div>
+                            <div class="text-[9px] text-slate-500">UID: ${m.uid || 'N/A'}</div>
+                        </td>
+                        <td class="p-6 text-center font-bold text-yellow-500">${m.honra.toLocaleString()}</td>
+                        <td class="p-6 text-center font-bold text-green-500">${m.guerra}</td>
+                        <td class="p-6 text-right">
+                            <button onclick="banir(${m.id}, '${m.nome}')" class="text-red-900 hover:text-red-500"><i class="fas fa-user-slash"></i></button>
+                        </td>
+                    </tr>`;
+            });
+        }
+        
+        async function banir(id, nick) {
+            const mot = prompt("Motivo do banimento:");
+            if(!mot) return;
+            await sb.from('banidos').insert([{ nick, motivo: mot, aplicado_por: 'Liderança' }]);
+            await sb.from('membros').delete().eq('id', id);
+            fetchAll();
+        }
+
+        function showTab(t) { /* lógica de troca de abas */ }
+    </script>
+</body>
+  </html>
