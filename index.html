@@ -1,280 +1,120 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTK BRASIL | Dashboard Administrativo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;600;800&display=swap');
-        :root { --gold: #fbbf24; --bg: #05070a; --card: #0d111a; --danger: #ef4444; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #e2e8f0; overflow-x: hidden; }
-        h1, h2, h3 { font-family: 'Montserrat', sans-serif; text-transform: uppercase; font-style: italic; }
-        .glass { background: rgba(13, 17, 26, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(251, 191, 36, 0.08); border-radius: 24px; }
-        .btn-gold { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); color: #000; font-weight: 900; transition: 0.3s; }
-        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(217, 119, 6, 0.2); }
-        .tab-btn { border-bottom: 2px solid transparent; color: #64748b; font-weight: 800; padding: 10px 0; transition: 0.3s; font-size: 11px; letter-spacing: 1px; }
-        .tab-btn.active { color: var(--gold); border-color: var(--gold); }
-        input, select { background: rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.05) !important; color: white !important; padding: 12px; border-radius: 12px; outline: none; }
-        input:focus { border-color: var(--gold) !important; }
-        .hidden { display: none; }
-    </style>
-</head>
-<body class="p-4 md:p-10">
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, InteractionType, REST, Routes } = require('discord.js');
+const { createClient } = require('@supabase/supabase-js');
+const express = require('express');
+const path = require('path');
 
-    <!-- TELA DE LOGIN -->
-    <div id="login-screen" class="fixed inset-0 flex items-center justify-center z-[100] bg-[#05070a]">
-        <div class="glass p-10 w-full max-w-sm text-center border-amber-500/20">
-            <h1 class="text-3xl text-white mb-2">TTK <span class="text-amber-500">BRASIL</span></h1>
-            <p class="text-slate-500 text-[10px] font-bold tracking-widest uppercase mb-8">Painel de Acesso Restrito</p>
-            <input type="password" id="login-pass" placeholder="Senha da Liderança" class="w-full mb-4 text-center">
-            <button onclick="checkLogin()" class="btn-gold w-full py-4 rounded-xl shadow-lg">ENTRAR NO SISTEMA</button>
-            <p id="login-error" class="text-red-500 text-xs mt-4 hidden">Senha incorreta, soldado!</p>
-        </div>
-    </div>
+// --- CONFIGURAÇÕES ---
+const TOKEN = process.env.DISCORD_TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID;
+const SB_URL = process.env.SB_URL;
+const SB_KEY = process.env.SB_KEY;
+const CANAL_RANKING = 'ID_CANAL_RANKING';
+const CANAL_AVISOS = 'ID_CANAL_AVISOS';
 
-    <!-- CONTEÚDO PRINCIPAL (OCULTO ATÉ LOGIN) -->
-    <div id="main-dashboard" class="max-w-6xl mx-auto hidden">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
-            <div class="text-center md:text-left">
-                <h1 class="text-5xl font-black italic tracking-tighter uppercase text-white">TTK <span class="text-amber-500">BRASIL</span></h1>
-                <p class="text-slate-600 text-[10px] font-bold tracking-[0.4em] uppercase mt-2">Sistema de Gestão Elite</p>
-            </div>
-            <div class="flex gap-4">
-                <button onclick="fetchAll()" class="btn-gold px-8 py-3 rounded-2xl flex items-center gap-2">
-                    <i class="fas fa-sync-alt"></i> ATUALIZAR
-                </button>
-                <button onclick="logout()" class="bg-red-500/10 text-red-500 px-6 py-3 rounded-2xl font-bold text-xs uppercase border border-red-500/20">Sair</button>
-            </div>
-        </header>
+// --- INICIALIZAÇÃO DO SITE (EXPRESS) ---
+const app = express();
+const port = process.env.PORT || 3000;
 
-        <!-- Navegação -->
-        <nav class="flex gap-8 mb-10 border-b border-white/5 overflow-x-auto no-scrollbar">
-            <button onclick="showTab('ranking')" id="btn-ranking" class="tab-btn active uppercase">Guerreiros</button>
-            <button onclick="showTab('adv')" id="btn-adv" class="tab-btn uppercase text-red-400">Advertências</button>
-            <button onclick="showTab('avisos')" id="btn-avisos" class="tab-btn uppercase">Comunicados</button>
-            <button onclick="showTab('banidos')" id="btn-banidos" class="tab-btn uppercase">Mural de Bans</button>
-        </nav>
+app.use(express.static('public')); // O site ficará na pasta /public
 
-        <!-- ABA 1: RANKING / MEMBROS -->
-        <div id="tab-ranking" class="space-y-4">
-            <div class="glass rounded-[2rem] overflow-hidden shadow-2xl">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-black/40 text-slate-500 text-[10px] uppercase font-black tracking-widest">
-                            <tr>
-                                <th class="p-6">Nick / ID</th>
-                                <th class="p-6 text-center">Honra</th>
-                                <th class="p-6 text-center">Guerra</th>
-                                <th class="p-6">Status</th>
-                                <th class="p-6 text-right">Gestão</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-ranking" class="divide-y divide-white/5"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+app.listen(port, () => {
+    console.log(`🌐 Site rodando na porta ${port}`);
+});
 
-        <!-- ABA 2: ADVERTÊNCIAS (NOVO) -->
-        <div id="tab-adv" class="hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Aplicar ADV -->
-                <div class="glass p-8 rounded-3xl">
-                    <h3 class="text-red-500 font-black text-sm mb-6 uppercase tracking-widest italic">Aplicar Nova ADV</h3>
-                    <div class="flex flex-col gap-4">
-                        <div class="flex gap-2">
-                            <input type="text" id="adv-nick" placeholder="Nick do Membro" class="flex-1">
-                            <button onclick="verificarADV()" class="bg-blue-600 px-4 rounded-xl text-[10px] font-black uppercase">Verificar</button>
-                        </div>
-                        <select id="adv-autor">
-                            <option value="TTK ANGELLO">ANGELLO (Líder)</option>
-                            <option value="TTK JOYCE">JOYCE (Vice)</option>
-                        </select>
-                        <input type="text" id="adv-motivo" placeholder="Motivo da advertência...">
-                        <input type="text" id="adv-evidencia" placeholder="Link de evidência (Opcional)">
-                        <button onclick="salvarADV()" class="bg-red-600 py-4 rounded-xl font-black text-xs uppercase hover:bg-red-500 transition">Aplicar Castigo</button>
-                    </div>
-                </div>
-                <!-- Estatísticas/Status -->
-                <div class="glass p-8 rounded-3xl border-red-500/20 flex flex-col justify-center text-center">
-                    <p class="text-slate-500 font-bold uppercase text-[10px] mb-2">Consulta Rápida</p>
-                    <div id="status-check-result" class="text-white font-bold text-lg">Insira um nick para verificar histórico.</div>
-                </div>
-            </div>
-            <div id="lista-adv" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-        </div>
+// --- INICIALIZAÇÃO DO BOT ---
+const client = new Client({ intents: [32767] });
+const sb = createClient(SB_URL, SB_KEY);
 
-        <!-- ABA 3: AVISOS -->
-        <div id="tab-avisos" class="hidden space-y-6">
-            <div class="glass p-8 rounded-3xl">
-                <input type="text" id="aviso-msg" placeholder="Digite o aviso para o Discord..." class="w-full mb-4">
-                <button onclick="postarAviso()" class="btn-gold w-full py-4 rounded-xl">PUBLICAR COMUNICADO</button>
-            </div>
-            <div id="lista-avisos" class="grid gap-4"></div>
-        </div>
+// Comandos /
+const commands = [
+    { name: 'setup', description: 'Cria o botão de verificação TTK.' },
+    { name: 'ranking_post', description: 'Cria a mensagem fixa de ranking.' }
+];
 
-        <!-- ABA 4: BANIDOS -->
-        <div id="tab-banidos" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6"></div>
-    </div>
+const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-    <!-- MODAL: BANIMENTO -->
-    <div id="modal-ban" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-[110] backdrop-blur-xl">
-        <div class="glass max-w-md w-full p-10 border border-red-500/20">
-            <h2 class="text-3xl font-black text-red-500 italic mb-6">BANIMENTO</h2>
-            <div class="space-y-4">
-                <p class="text-slate-400 text-xs font-bold uppercase">Membro alvo: <span id="ban-nick" class="text-white text-xl">-</span></p>
-                <input type="hidden" id="ban-id-ref">
-                <input type="text" id="ban-motivo" placeholder="Motivo oficial..." class="w-full">
-                <div class="flex gap-4">
-                    <button onclick="closeBan()" class="flex-1 font-bold text-slate-500">Cancelar</button>
-                    <button onclick="confirmarBan()" class="flex-1 bg-red-600 text-white font-black py-4 rounded-xl">CONFIRMAR</button>
-                </div>
-            </div>
-        </div>
-    </div>
+client.once('ready', async () => {
+    console.log(`✅ Bot TTK Online: ${client.user.tag}`);
+    
+    try {
+        await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
+    } catch (e) { console.error(e); }
 
-    <script>
-        // --- CONFIGURAÇÃO ---
-        const SB_URL = 'https://docrdiftmbozveolevec.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvY3JkaWZ0bWJvenZlb2xldmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MTA5NjcsImV4cCI6MjA4OTA4Njk2N30.lutrywrjLsaF2sSUFOqTiC75ZrscHsrQ9KOlR-vuXkU';
-        const sb = supabase.createClient(SB_URL, SB_KEY);
-        const GUILD_PASS = 'ttk123'; // Mude aqui sua senha de login
+    // LOOP: Atualizar Ranking Fixo (1 em 1 min)
+    let msgRankingID = null;
+    setInterval(async () => {
+        const { data: membros } = await sb.from('membros').select('*').order('honra', { ascending: false });
+        if(!membros) return;
 
-        // --- SISTEMA DE LOGIN ---
-        function checkLogin() {
-            const pass = document.getElementById('login-pass').value;
-            if(pass === GUILD_PASS) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-dashboard').classList.remove('hidden');
-                fetchAll();
+        const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        let tabela = "RANK | NOME         | HONRA | GUERRA\n-----------------------------------\n";
+        membros.forEach((m, i) => {
+            tabela += `${(i + 1).toString().padStart(2, '0')}   | ${m.nome.padEnd(12, ' ')} | ${m.honra.toString().padStart(5, ' ')} | ${m.guerra.toString().padStart(4, ' ')}\n`;
+        });
+
+        const embed = new EmbedBuilder()
+            .setTitle('🏆 RANKING DE ELITE TTK')
+            .setColor('#fbbf24')
+            .setDescription(`\`\`\`\n${tabela}\n\`\`\``)
+            .setFooter({ text: `Sincronizado: ${agora}` });
+
+        const canal = client.channels.cache.get(CANAL_RANKING);
+        if(canal) {
+            // Lógica para editar mensagem fixa ou criar nova
+            if(!msgRankingID) {
+                const sent = await canal.send({ embeds: [embed] });
+                msgRankingID = sent.id;
             } else {
-                document.getElementById('login-error').classList.remove('hidden');
+                try {
+                    const msg = await canal.messages.fetch(msgRankingID);
+                    await msg.edit({ embeds: [embed] });
+                } catch { msgRankingID = null; }
             }
         }
+    }, 60000);
+});
 
-        function logout() { location.reload(); }
+// INTERAÇÃO: /SETUP E VERIFICAÇÃO (SALVAR NO BANCO + MUDAR NICK)
+client.on('interactionCreate', async (i) => {
+    if (i.commandName === 'setup') {
+        const btn = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('verif').setLabel('INICIAR VERIFICAÇÃO').setStyle(ButtonStyle.Success));
+        await i.reply({ content: 'Painel de Verificação:', components: [btn] });
+    }
 
-        let membros = [], avisos = [], banidos = [], advs = [];
+    if (i.customId === 'verif') {
+        const modal = new ModalBuilder().setCustomId('mod_v').setTitle('CADASTRO TTK');
+        modal.addComponents(
+            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('n').setLabel('NICK NO JOGO').setStyle(TextInputStyle.Short).setRequired(true)),
+            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('uid').setLabel('SEU ID (UID)').setStyle(TextInputStyle.Short).setRequired(true)),
+            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('f').setLabel('FUNÇÃO (Curan, Gás ou Rush)').setStyle(TextInputStyle.Short).setRequired(true))
+        );
+        await i.showModal(modal);
+    }
 
-        async function fetchAll() {
-            const { data: m } = await sb.from('membros').select('*').order('honra', { ascending: false });
-            const { data: a } = await sb.from('avisos').select('*').order('id', { ascending: false });
-            const { data: b } = await sb.from('banidos').select('*').order('id', { ascending: false });
-            const { data: ad } = await sb.from('advertencias').select('*').order('id', { ascending: false });
-            
-            membros = m || []; avisos = a || []; banidos = b || []; advs = ad || [];
-            render();
-        }
+    if (i.type === InteractionType.ModalSubmit && i.customId === 'mod_v') {
+        const nick = i.fields.getTextInputValue('n');
+        const uid = i.fields.getTextInputValue('uid');
+        
+        // Salva no Supabase
+        await sb.from('membros').upsert({ nome: nick, uid: uid, status: 'ONLINE' }, { onConflict: 'nome' });
+        
+        // Tenta mudar nick
+        try { await i.member.setNickname(`TTK | ${nick}`); } catch(e){}
+        
+        await i.reply({ content: `✅ Registrado! Nick e UID salvos no banco.`, ephemeral: true });
+    }
+});
 
-        function render() {
-            // RANKING
-            const body = document.getElementById('table-ranking');
-            body.innerHTML = '';
-            membros.forEach((m, i) => {
-                const low = m.honra < 5000 || m.guerra < 150;
-                body.innerHTML += `
-                    <tr class="hover:bg-white/[0.02] border-b border-white/5 transition">
-                        <td class="p-6">
-                            <div class="font-bold ${low ? 'text-red-500' : 'text-white'}">${m.nome}</div>
-                            <div class="text-[9px] text-slate-500 uppercase tracking-tighter">UID: ${m.uid || 'Pendente'}</div>
-                        </td>
-                        <td class="p-6 text-center font-mono font-bold text-amber-500">${m.honra.toLocaleString()}</td>
-                        <td class="p-6 text-center font-mono font-bold text-green-500">${m.guerra}</td>
-                        <td class="p-6 text-[10px] uppercase text-slate-500">${m.status || 'Offline'}</td>
-                        <td class="p-6 text-right flex justify-end gap-3">
-                            <button onclick="openBan(${m.id}, '${m.nome}')" class="text-red-900 hover:text-red-500 scale-125"><i class="fas fa-user-slash"></i></button>
-                        </td>
-                    </tr>`;
-            });
+// MONITOR DE BANIMENTO E ADVs (Avisa no canal automaticamente quando o site envia)
+let lastCount = 0;
+setInterval(async () => {
+    const { data: bans } = await sb.from('banidos').select('*').order('id', {ascending: false});
+    if(bans && bans.length > lastCount) {
+        const last = bans[0];
+        const embed = new EmbedBuilder().setTitle('🚫 NOVO BANIMENTO').setColor('#ff0000').addFields({name: 'Nick', value: last.nick}, {name: 'Motivo', value: last.motivo});
+        client.channels.cache.get(CANAL_AVISOS)?.send({ embeds: [embed] });
+        lastCount = bans.length;
+    }
+}, 10000);
 
-            // ADVERTÊNCIAS
-            const advDiv = document.getElementById('lista-adv');
-            advDiv.innerHTML = '';
-            advs.forEach(ad => {
-                advDiv.innerHTML += `
-                    <div class="glass p-5 border-l-4 border-red-500 bg-red-500/5 relative">
-                        <h4 class="text-white font-bold uppercase text-sm">${ad.nick}</h4>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Autor: ${ad.autor}</p>
-                        <p class="text-xs italic mt-2 text-slate-200">"${ad.motivo}"</p>
-                        ${ad.evidencia ? `<a href="${ad.evidencia}" target="_blank" class="text-[9px] text-blue-400 underline font-bold uppercase mt-2 block">Ver Evidência</a>` : ''}
-                        <button onclick="removerADV(${ad.id})" class="absolute top-4 right-4 text-slate-800 hover:text-white"><i class="fas fa-trash-alt text-xs"></i></button>
-                    </div>`;
-            });
-
-            // AVISOS (Similar aos anteriores)
-            const avDiv = document.getElementById('lista-avisos');
-            avDiv.innerHTML = '';
-            avisos.forEach(a => {
-                avDiv.innerHTML += `<div class="glass p-5 border-l-4 border-amber-500"><p class="font-bold italic">"${a.mensagem}"</p></div>`;
-            });
-
-            // BANIDOS
-            const banDiv = document.getElementById('tab-banidos');
-            banDiv.innerHTML = '';
-            banidos.forEach(b => {
-                banDiv.innerHTML += `<div class="glass p-5 border-red-500/10 bg-red-500/5"><p class="text-red-500 font-bold uppercase text-xs">${b.nick}</p><p class="text-[9px] italic opacity-50">${b.motivo}</p></div>`;
-            });
-        }
-
-        // --- FUNÇÕES DE ADVERTÊNCIA ---
-        async function verificarADV() {
-            const nick = document.getElementById('adv-nick').value;
-            if(!nick) return;
-            const count = advs.filter(a => a.nick.toLowerCase() === nick.toLowerCase()).length;
-            const res = document.getElementById('status-check-result');
-            res.innerHTML = count > 0 
-                ? `<span class="text-red-500 uppercase italic">Atenção! Esse membro possui ${count} ADV(s).</span>`
-                : `<span class="text-green-500">Membro limpo! Nenhuma advertência encontrada.</span>`;
-        }
-
-        async function salvarADV() {
-            const nick = document.getElementById('adv-nick').value;
-            const autor = document.getElementById('adv-autor').value;
-            const motivo = document.getElementById('adv-motivo').value;
-            const evidencia = document.getElementById('adv-evidencia').value;
-
-            if(!nick || !motivo) return alert("Nick e Motivo são obrigatórios!");
-
-            await sb.from('advertencias').insert([{ nick, autor, motivo, evidencia }]);
-            document.getElementById('adv-nick').value = '';
-            document.getElementById('adv-motivo').value = '';
-            document.getElementById('adv-evidencia').value = '';
-            fetchAll();
-        }
-
-        async function removerADV(id) {
-            if(confirm("Deseja perdoar/remover esta advertência?")) {
-                await sb.from('advertencias').delete().eq('id', id);
-                fetchAll();
-            }
-        }
-
-        // --- SISTEMA DE ABAS ---
-        function showTab(t) {
-            ['ranking', 'adv', 'avisos', 'banidos'].forEach(tab => {
-                document.getElementById(`tab-${tab}`).classList.toggle('hidden', tab !== t);
-                document.getElementById(`btn-${tab}`).classList.toggle('active', tab === t);
-            });
-        }
-
-        function openBan(id, nick) {
-            document.getElementById('ban-nick').innerText = nick;
-            document.getElementById('ban-id-ref').value = id;
-            document.getElementById('modal-ban').classList.remove('hidden');
-        }
-        function closeBan() { document.getElementById('modal-ban').classList.add('hidden'); }
-
-        async function confirmarBan() {
-            const id = document.getElementById('ban-id-ref').value;
-            const nick = document.getElementById('ban-nick').innerText;
-            const mot = document.getElementById('ban-motivo').value || "Expulsão";
-            await sb.from('banidos').insert([{ nick, motivo: mot, aplicado_por: "Liderança" }]);
-            await sb.from('membros').delete().eq('id', id);
-            closeBan(); fetchAll();
-        }
-    </script>
-</body>
-</html>
+client.login(TOKEN);
