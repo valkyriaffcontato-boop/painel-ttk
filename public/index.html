@@ -3,98 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTK BRASIL | Painel Supremo</title>
+    <title>TTK BRASIL | Sistema Supremo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@400;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #020617; color: #fff; }
-        .premium-card { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(234, 179, 8, 0.1); border-radius: 30px; }
-        .gold-text { background: linear-gradient(to right, #facc15, #a16207); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Montserrat'; }
-        .tab-btn { padding: 10px 20px; font-weight: bold; color: #64748b; transition: 0.3s; }
-        .tab-btn.active { color: #facc15; border-bottom: 2px solid #facc15; }
+        body { font-family: 'Inter', sans-serif; background: #020408; color: #fff; overflow-x: hidden; }
+        .gold-text { background: linear-gradient(135deg, #facc15 0%, #a16207 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Montserrat'; }
+        .card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(250, 204, 21, 0.1); border-radius: 20px; }
+        .tab-btn { padding: 15px; font-weight: 800; color: #64748b; border-bottom: 2px solid transparent; transition: 0.3s; font-size: 12px; }
+        .tab-btn.active { color: #facc15; border-color: #facc15; }
+        .text-danger { color: #ef4444 !important; font-weight: 800; }
+        input, select { background: #000 !important; border: 1px solid #333 !important; color: #fff !important; padding: 12px; border-radius: 10px; }
     </style>
 </head>
 <body class="p-4 md:p-10">
-    <div id="login-screen" class="fixed inset-0 bg-[#020617] flex items-center justify-center z-[200]">
-        <div class="premium-card p-10 w-full max-w-sm text-center">
-            <h1 class="text-4xl gold-text mb-8">TTK BRASIL</h1>
-            <input type="password" id="pass" placeholder="Senha da Liderança" class="w-full bg-black/40 p-4 rounded-2xl mb-4 outline-none border border-white/5 focus:border-yellow-500">
-            <button onclick="login()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-2xl shadow-xl shadow-yellow-500/10">ACESSAR PAINEL</button>
+
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen" class="fixed inset-0 bg-[#020408] z-[500] flex items-center justify-center">
+        <div class="card p-10 w-full max-w-sm text-center">
+            <h1 class="text-4xl gold-text mb-8 font-black uppercase italic">TTK BRASIL</h1>
+            <input type="text" id="l-user" placeholder="USUÁRIO" class="w-full mb-3 outline-none">
+            <input type="password" id="l-pass" placeholder="SENHA" class="w-full mb-6 outline-none">
+            <button onclick="doLogin()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl shadow-lg shadow-yellow-500/10">ENTRAR NO PAINEL</button>
         </div>
     </div>
 
+    <!-- CONTEÚDO PRINCIPAL -->
     <div id="dashboard" class="max-w-6xl mx-auto hidden">
         <header class="flex justify-between items-center mb-10">
-            <div>
-                <h1 class="text-5xl gold-text italic">TTK BRASIL</h1>
-                <p class="text-[10px] tracking-[0.5em] text-slate-500 font-bold uppercase mt-2">Gestão de Elite Unificada</p>
-            </div>
-            <button onclick="fetchAll()" class="bg-yellow-500 text-black px-8 py-3 rounded-full font-black text-xs">SINCRONIZAR</button>
+            <h1 class="text-4xl gold-text font-black italic">TTK BRASIL</h1>
+            <div id="user-display" class="text-[10px] text-slate-500 font-bold uppercase"></div>
         </header>
 
-        <nav class="flex gap-4 mb-8 border-b border-white/5">
-            <button onclick="showTab('ranking')" id="btn-ranking" class="tab-btn active">RANKING</button>
-            <button onclick="showTab('adv')" id="btn-adv" class="tab-btn">ADVERTÊNCIAS</button>
-            <button onclick="showTab('ban')" id="btn-ban" class="tab-btn">BANIDOS</button>
+        <nav class="flex gap-2 mb-8 border-b border-white/5 overflow-x-auto no-scrollbar">
+            <button onclick="tab('home')" id="btn-home" class="tab-btn active uppercase">Início</button>
+            <button onclick="tab('membros')" id="btn-membros" class="tab-btn uppercase">Soldados</button>
+            <button onclick="tab('adv')" id="btn-adv" class="tab-btn uppercase">Advertências</button>
+            <button onclick="tab('ban')" id="btn-ban" class="tab-btn uppercase">Mural Ban</button>
         </nav>
 
-        <div id="tab-ranking" class="premium-card overflow-hidden">
+        <!-- ABA HOME: ESTATÍSTICAS -->
+        <div id="tab-home" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="card p-6 text-center"><p class="text-[10px] text-slate-500 font-black mb-2 uppercase">Honra Total</p><h2 id="st-honra" class="text-3xl font-black text-yellow-500">0</h2></div>
+                <div class="card p-6 text-center"><p class="text-[10px] text-slate-500 font-black mb-2 uppercase">Guerra Total</p><h2 id="st-guerra" class="text-3xl font-black text-green-500">0</h2></div>
+                <div class="card p-6 text-center"><p class="text-[10px] text-slate-500 font-black mb-2 uppercase">Efetivo</p><h2 id="st-membros" class="text-3xl font-black">0/55</h2></div>
+            </div>
+            <div class="card p-8">
+                <h3 class="font-black text-yellow-500 mb-6 uppercase tracking-widest italic">🏆 Top 5 Elite</h3>
+                <div id="top-5-list" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- ABA MEMBROS -->
+        <div id="tab-membros" class="hidden card overflow-hidden">
             <table class="w-full text-left">
-                <thead class="bg-black/20 text-[10px] text-slate-500 uppercase font-black">
-                    <tr><th class="p-6">Soldado / UID</th><th class="p-6 text-center">Honra</th><th class="p-6 text-center">Guerra</th><th class="p-6 text-right">Ação</th></tr>
+                <thead class="bg-black/40 text-[10px] text-slate-500 font-black uppercase">
+                    <tr><th class="p-5">Nome / ID</th><th class="p-5 text-center">Honra</th><th class="p-5 text-center">Guerra</th><th class="p-5 text-right">Ação</th></tr>
                 </thead>
-                <tbody id="table-ranking" class="divide-y divide-white/5"></tbody>
+                <tbody id="membros-list" class="divide-y divide-white/5"></tbody>
             </table>
         </div>
-        
-        <!-- Outras abas (ADVs e Bans) seguem a mesma lógica visual -->
+
+        <!-- ABA ADVERTÊNCIAS -->
+        <div id="tab-adv" class="hidden space-y-6">
+            <div class="card p-8">
+                <h3 class="text-red-500 font-black mb-6 uppercase">Aplicar Advertência</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" id="adv-nick" placeholder="Nick do Infrator">
+                    <input type="text" id="adv-motivo" placeholder="Motivo">
+                    <input type="text" id="adv-evid" placeholder="Link da Prova (Opcial)">
+                    <button onclick="saveADV()" class="bg-red-600 font-black rounded-xl py-3 uppercase text-xs">Confirmar Castigo</button>
+                </div>
+            </div>
+            <div id="adv-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- ABA BANIDOS -->
+        <div id="tab-ban" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4"></div>
     </div>
 
     <script>
-        const SB_URL = 'https://docrdiftmbozveolevec.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvY3JkaWZ0bWJvenZlb2xldmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MTA5NjcsImV4cCI6MjA4OTA4Njk2N30.lutrywrjLsaF2sSUFOqTiC75ZrscHsrQ9KOlR-vuXkU';
-        const sb = supabase.createClient(SB_URL, SB_KEY);
+        // --- COLOQUE SUAS CHAVES DO SUPABASE ABAIXO ---
+        const SB_URL = 'SUA_URL_SUPABASE';
+        const SB_KEY = 'SUA_KEY_ANON';
+        // ----------------------------------------------
 
-        function login() {
-            if(document.getElementById('pass').value === 'ttk123') {
-                document.getElementById('login-screen').classList.add('hidden');
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+        let currentUser = "";
+
+        async function doLogin() {
+            const user = document.getElementById('l-user').value;
+            const pass = document.getElementById('l-pass').value;
+            const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user, pass}) });
+            if(res.ok) {
+                const d = await res.json(); currentUser = user;
+                document.getElementById('login-screen').remove();
                 document.getElementById('dashboard').classList.remove('hidden');
-                fetchAll();
-            }
+                document.getElementById('user-display').innerText = `${user} (${d.cargo})`;
+                loadAll();
+            } else { alert("Acesso negado, soldado!"); }
         }
 
-        async function fetchAll() {
-            const { data } = await sb.from('membros').select('*').order('honra', { ascending: false });
-            const body = document.getElementById('table-ranking');
-            body.innerHTML = '';
-            data.forEach((m, i) => {
-                const low = m.honra < 5000 || m.guerra < 150;
-                body.innerHTML += `
-                    <tr class="hover:bg-white/[0.02]">
-                        <td class="p-6">
-                            <div class="font-bold ${low ? 'text-red-500' : 'text-white'} text-sm">${m.nome}</div>
-                            <div class="text-[9px] text-slate-500">UID: ${m.uid || 'N/A'}</div>
-                        </td>
-                        <td class="p-6 text-center font-bold text-yellow-500">${m.honra.toLocaleString()}</td>
-                        <td class="p-6 text-center font-bold text-green-500">${m.guerra}</td>
-                        <td class="p-6 text-right">
-                            <button onclick="banir(${m.id}, '${m.nome}')" class="text-red-900 hover:text-red-500"><i class="fas fa-user-slash"></i></button>
-                        </td>
-                    </tr>`;
+        async function loadAll() {
+            const { data: m } = await sb.from('membros').select('*').order('honra', {ascending: false});
+            const { data: a } = await sb.from('advertencias').select('*').order('id', {descending: true});
+            const { data: b } = await sb.from('banidos').select('*').order('id', {descending: true});
+
+            // Stats Home
+            document.getElementById('st-honra').innerText = (m || []).reduce((acc, x) => acc + x.honra, 0).toLocaleString();
+            document.getElementById('st-guerra').innerText = (m || []).reduce((acc, x) => acc + x.guerra, 0);
+            document.getElementById('st-membros').innerText = `${(m || []).length}/55`;
+
+            // Top 5
+            document.getElementById('top-5-list').innerHTML = (m || []).slice(0,5).map((x, i) => `<div class="flex justify-between p-4 bg-white/5 rounded-xl border-l-4 border-yellow-500 font-bold"><p>#${i+1} ${x.nome}</p><p class="text-yellow-500">${x.honra} pts</p></div>`).join('');
+
+            // Lista Membros
+            document.getElementById('membros-list').innerHTML = (m || []).map(x => {
+                const isBad = x.honra < 5000 || x.guerra < 150;
+                return `<tr class="hover:bg-white/[0.02]">
+                    <td class="p-5 font-bold ${isBad ? 'text-danger' : ''}">${x.nome}<br><span class="text-[9px] text-slate-500 font-normal">ID: ${x.uid || 'Pendente'}</span></td>
+                    <td class="p-5 text-center text-yellow-500 font-bold">${x.honra}</td>
+                    <td class="p-5 text-center text-green-500 font-bold">${x.guerra}</td>
+                    <td class="p-5 text-right"><button onclick="banMembro(${x.id}, '${x.nome}')" class="text-red-600 hover:scale-125 transition"><i class="fas fa-user-slash"></i></button></td>
+                </tr>`;
+            }).join('');
+
+            // Lista ADV
+            document.getElementById('adv-list').innerHTML = (a || []).map(x => `<div class="card p-5 border-l-4 border-red-500"><h4>${x.nick}</h4><p class="text-[9px] opacity-50 font-bold uppercase mt-1">Motivo: ${x.motivo}</p>${x.evidencia ? `<a href="${x.evidencia}" target="_blank" class="text-blue-400 text-[9px] block mt-2 underline font-bold uppercase">Ver Evidência</a>`:''}</div>`).join('');
+
+            // Lista Ban
+            document.getElementById('tab-ban').innerHTML = (b || []).map(x => `<div class="card p-5 border-red-900 bg-red-900/10"><h4>${x.nick}</h4><p class="text-[9px] opacity-50 uppercase mt-1">Motivo: ${x.motivo}</p></div>`).join('');
+        }
+
+        async function banMembro(id, nick) {
+            const m = prompt(`Motivo do banimento para ${nick}:`);
+            if(!m) return;
+            await sb.from('banidos').insert([{ nick, motivo: m, aplicado_por: currentUser }]);
+            await sb.from('membros').delete().eq('id', id);
+            loadAll();
+        }
+
+        async function saveADV() {
+            const nick = document.getElementById('adv-nick').value;
+            const mot = document.getElementById('adv-motivo').value;
+            const ev = document.getElementById('adv-evid').value;
+            if(!nick || !mot) return alert("Nick e Motivo obrigatórios!");
+            await sb.from('advertencias').insert([{ nick, motivo: mot, evidencia: ev, autor: currentUser }]);
+            document.getElementById('adv-nick').value = '';
+            document.getElementById('adv-motivo').value = '';
+            document.getElementById('adv-evid').value = '';
+            loadAll();
+        }
+
+        function tab(t) {
+            ['home', 'membros', 'adv', 'ban'].forEach(x => {
+                document.getElementById(`tab-${x}`).classList.toggle('hidden', x !== t);
+                document.getElementById(`btn-${x}`).classList.toggle('active', x === t);
             });
         }
-        
-        async function banir(id, nick) {
-            const mot = prompt("Motivo do banimento:");
-            if(!mot) return;
-            await sb.from('banidos').insert([{ nick, motivo: mot, aplicado_por: 'Liderança' }]);
-            await sb.from('membros').delete().eq('id', id);
-            fetchAll();
-        }
-
-        function showTab(t) { /* lógica de troca de abas */ }
     </script>
 </body>
-  </html>
+</html>
