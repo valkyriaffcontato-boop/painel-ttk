@@ -23,7 +23,7 @@
     <div id="login-screen" class="fixed inset-0 bg-[#020408] z-[500] flex items-center justify-center p-4">
         <div class="card p-10 w-full max-w-sm text-center">
             <h1 class="text-4xl gold-txt mb-8 uppercase italic">TTK BRASIL</h1>
-            <input type="text" id="l-user" placeholder="USUÁRIO" class="w-full input-dark mb-3">
+            <input type="text" id="l-user" placeholder="USUÁRIO" class="w-full input-dark mb-3 uppercase">
             <input type="password" id="l-pass" placeholder="SENHA" class="w-full input-dark mb-6">
             <button onclick="doLogin()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl">ENTRAR</button>
         </div>
@@ -33,7 +33,7 @@
         <header class="flex justify-between items-center mb-10">
             <h1 class="text-4xl gold-txt italic">TTK BRASIL</h1>
             <div class="flex gap-3">
-                <button onclick="resetRank()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase"><i class="fas fa-trash-alt mr-2"></i>Resetar Rank</button>
+                <button onclick="resetRank()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase">Zerar Rank</button>
                 <button onclick="load()" class="bg-yellow-500 text-black px-4 py-2 rounded-lg text-xs font-bold uppercase">Sincronizar</button>
             </div>
         </header>
@@ -43,59 +43,57 @@
             <button onclick="tab('membros')" id="b-membros" class="tab-btn">Soldados</button>
             <button onclick="tab('adv')" id="b-adv" class="tab-btn">Advertências</button>
             <button onclick="tab('ban')" id="b-ban" class="tab-btn">Banidos</button>
-            <button onclick="tab('conf')" id="b-conf" class="tab-btn text-blue-400">Canais/Bot</button>
+            <button onclick="tab('conf')" id="b-conf" class="tab-btn text-blue-400">Config Bot</button>
         </nav>
+
+        <!-- ABA MEMBROS COM PESQUISA -->
+        <div id="t-membros" class="hidden space-y-4">
+            <div class="card p-4 flex items-center gap-3">
+                <i class="fas fa-search text-slate-500"></i>
+                <input type="text" id="search-input" onkeyup="filterMembers()" placeholder="Pesquisar por Nick..." class="bg-transparent border-none outline-none flex-1 text-sm">
+            </div>
+            <div class="card overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-black/40 text-[10px] text-slate-500 font-black uppercase">
+                        <tr><th class="p-5">Nickname</th><th class="p-5 text-center">Honra</th><th class="p-5 text-center">Guerra</th><th class="p-5 text-right">Ação</th></tr>
+                    </thead>
+                    <tbody id="lista-m" class="divide-y divide-white/5"></tbody>
+                </table>
+            </div>
+        </div>
 
         <!-- ABA HOME -->
         <div id="t-home" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="card p-6 text-center"><p class="text-[10px] text-slate-500 font-black uppercase">Honra Total</p><h2 id="h-total" class="text-3xl font-black text-yellow-500">0</h2></div>
-                <div class="card p-6 text-center"><p class="text-[10px] text-slate-500 font-black uppercase">Guerra Total</p><h2 id="g-total" class="text-3xl font-black text-green-500">0</h2></div>
-                <div class="card p-6 text-center"><p class="text-[10px] text-slate-500 font-black uppercase">Efetivo</p><h2 id="m-total" class="text-3xl font-black">0/55</h2></div>
+                <div class="card p-6 text-center"><p class="text-[10px] text-slate-500 font-black mb-2 uppercase">Honra Total</p><h2 id="h-total" class="text-3xl font-black text-yellow-500">0</h2></div>
+                <div class="card p-6 text-center"><p class="text-[10px] text-slate-500 font-black mb-2 uppercase">Guerra Total</p><h2 id="g-total" class="text-3xl font-black text-green-500">0</h2></div>
+                <div class="card p-6 text-center"><p class="text-[10px] text-slate-500 font-black mb-2 uppercase">Efetivo</p><h2 id="m-total" class="text-3xl font-black">0/55</h2></div>
             </div>
             <div class="card p-8"><h3 class="font-black text-yellow-500 mb-6 uppercase italic">🏆 Top 5 Membros</h3><div id="top5" class="space-y-3"></div></div>
         </div>
 
-        <!-- ABA MEMBROS -->
-        <div id="t-membros" class="hidden card overflow-hidden">
-            <table class="w-full text-left">
-                <thead class="bg-white/5 text-[10px] text-slate-500 font-black uppercase">
-                    <tr><th class="p-5">Nickname</th><th class="p-5 text-center">Honra</th><th class="p-5 text-center">Guerra</th><th class="p-5 text-right">Ação</th></tr>
-                </thead>
-                <tbody id="lista-m" class="divide-y divide-white/5"></tbody>
-            </table>
-        </div>
-
         <!-- ABA CONFIG CANAIS -->
         <div id="t-conf" class="hidden card p-8 space-y-6">
-            <h3 class="gold-txt uppercase">Configurar Canais do Discord</h3>
+            <h3 class="gold-txt uppercase">Canais do Bot</h3>
             <div class="grid gap-4">
-                <div><label class="text-[10px] uppercase font-bold text-slate-500">ID Canal Ranking</label><input type="text" id="conf-rank" class="w-full input-dark"></div>
-                <div><label class="text-[10px] uppercase font-bold text-slate-500">ID Canal Avisos/Bans</label><input type="text" id="conf-aviso" class="w-full input-dark"></div>
-                <button onclick="saveConf()" class="bg-blue-600 font-black py-3 rounded-xl">SALVAR CANAIS</button>
+                <div><label class="text-[10px] font-bold text-slate-500 uppercase">Canal Ranking ID</label><input type="text" id="conf-rank" class="w-full input-dark"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 uppercase">Canal Avisos ID</label><input type="text" id="conf-aviso" class="w-full input-dark"></div>
+                <button onclick="saveConf()" class="bg-blue-600 font-black py-3 rounded-xl">SALVAR E ATIVAR NO DISCORD</button>
             </div>
         </div>
 
-        <!-- ABA ADV E BAN SEGUEM A MESMA ESTRUTURA DO CÓDIGO ANTERIOR -->
-        <div id="t-adv" class="hidden space-y-6">
-            <div class="card p-8">
-                <input type="text" id="adv-n" placeholder="Nick" class="input-dark mb-2 w-full">
-                <input type="text" id="adv-m" placeholder="Motivo" class="input-dark mb-2 w-full">
-                <button onclick="saveADV()" class="bg-red-600 w-full py-3 font-bold rounded-xl">APLICAR ADV</button>
-            </div>
-            <div id="lista-adv" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
+        <div id="t-adv" class="hidden space-y-6"><div class="card p-8"><input type="text" id="adv-n" placeholder="Nick" class="input-dark mb-2 w-full"><input type="text" id="adv-m" placeholder="Motivo" class="input-dark mb-2 w-full"><button onclick="saveADV()" class="bg-red-600 w-full py-3 font-bold rounded-xl">APLICAR ADV</button></div><div id="lista-adv" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
         <div id="t-ban" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4"></div>
     </div>
 
-    <!-- MODAL EDITAR PONTOS -->
+    <!-- MODAL EDITAR -->
     <div id="modal-edit" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[600]">
         <div class="card p-8 w-full max-w-sm">
             <h2 id="edit-name" class="gold-txt mb-4 uppercase">---</h2>
             <input type="hidden" id="edit-id">
             <input type="number" id="edit-honra" placeholder="Honra" class="w-full input-dark mb-3">
             <input type="number" id="edit-guerra" placeholder="Guerra" class="w-full input-dark mb-6">
-            <button onclick="saveEdit()" class="w-full bg-green-600 font-black py-3 rounded-xl mb-2">SALVAR PONTOS</button>
+            <button onclick="saveEdit()" class="w-full bg-green-600 font-black py-3 rounded-xl mb-2">SALVAR</button>
             <button onclick="closeEdit()" class="w-full text-slate-500 font-bold">CANCELAR</button>
         </div>
     </div>
@@ -104,18 +102,19 @@
         const SB_URL = 'https://docrdiftmbozveolevec.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvY3JkaWZ0bWJvenZlb2xldmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MTA5NjcsImV4cCI6MjA4OTA4Njk2N30.lutrywrjLsaF2sSUFOqTiC75ZrscHsrQ9KOlR-vuXkU';
         const sb = supabase.createClient(SB_URL, SB_KEY);
-        let currentUser = "";
+        let adminUser = "";
+        let globalMembers = [];
 
         async function doLogin() {
-            const user = document.getElementById('l-user').value;
+            const user = document.getElementById('l-user').value.toUpperCase();
             const pass = document.getElementById('l-pass').value;
             const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user, pass}) });
             if(res.ok) {
-                const d = await res.json(); currentUser = user;
+                const data = await res.json(); adminUser = data.user;
                 document.getElementById('login-screen').remove();
                 document.getElementById('dashboard').classList.remove('hidden');
                 load();
-            } else { alert("Acesso Negado!"); }
+            } else { alert("Senha Incorreta!"); }
         }
 
         async function load() {
@@ -123,15 +122,24 @@
             const { data: ad } = await sb.from('advertencias').select('*').order('id', {descending: true});
             const { data: b } = await sb.from('banidos').select('*').order('id', {descending: true});
             const { data: conf } = await sb.from('config_bot').select('*');
+            globalMembers = m || [];
 
-            // Home Stats
-            document.getElementById('h-total').innerText = (m||[]).reduce((a,x)=>a+x.honra,0).toLocaleString();
-            document.getElementById('g-total').innerText = (m||[]).reduce((a,x)=>a+x.guerra,0);
-            document.getElementById('m-total').innerText = `${(m||[]).length}/55`;
-            document.getElementById('top5').innerHTML = (m||[]).slice(0,5).map((x,i)=>`<div class="flex justify-between p-4 bg-white/5 rounded-xl border-l-4 border-yellow-500"><span>#${i+1} ${x.nome}</span><span class="font-bold text-yellow-500">${x.honra}</span></div>`).join('');
+            document.getElementById('h-total').innerText = globalMembers.reduce((a,x)=>a+x.honra,0).toLocaleString();
+            document.getElementById('g-total').innerText = globalMembers.reduce((a,x)=>a+x.guerra,0);
+            document.getElementById('m-total').innerText = `${globalMembers.length}/55`;
+            document.getElementById('top5').innerHTML = globalMembers.slice(0,5).map((x,i)=>`<div class="flex justify-between p-4 bg-white/5 rounded-xl border-l-4 border-yellow-500"><span>#${i+1} ${x.nome}</span><span class="font-bold text-yellow-500">${x.honra}</span></div>`).join('');
 
-            // Membros
-            document.getElementById('lista-m').innerHTML = (m||[]).map(x => `
+            renderTable(globalMembers);
+            if(conf) {
+                document.getElementById('conf-rank').value = conf.find(x=>x.chave==='canal_ranking')?.valor || '';
+                document.getElementById('conf-aviso').value = conf.find(x=>x.chave==='canal_avisos')?.valor || '';
+            }
+            document.getElementById('lista-adv').innerHTML = (ad||[]).map(x=>`<div class="card p-5 border-l-4 border-red-500"><b>${x.nick}</b><p class="text-[10px] opacity-50 uppercase">${x.motivo}</p></div>`).join('');
+            document.getElementById('t-ban').innerHTML = (b||[]).map(x=>`<div class="card p-5 border-red-900 bg-red-900/10"><b>${x.nick}</b><p class="text-[10px] opacity-50 uppercase">${x.motivo}</p></div>`).join('');
+        }
+
+        function renderTable(list) {
+            document.getElementById('lista-m').innerHTML = list.map(x => `
                 <tr class="hover:bg-white/[0.02]">
                     <td class="p-5 font-bold">${x.nome}<br><small class="opacity-50">UID: ${x.uid||'---'}</small></td>
                     <td class="p-5 text-center text-yellow-500 font-bold">${x.honra}</td>
@@ -141,50 +149,28 @@
                         <button onclick="ban(${x.id},'${x.nome}')" class="text-red-600 p-2"><i class="fas fa-user-slash"></i></button>
                     </td>
                 </tr>`).join('');
-
-            // Configs
-            if(conf) {
-                document.getElementById('conf-rank').value = conf.find(x=>x.chave==='canal_ranking')?.valor || '';
-                document.getElementById('conf-aviso').value = conf.find(x=>x.chave==='canal_avisos')?.valor || '';
-            }
-
-            // ADV e BAN
-            document.getElementById('lista-adv').innerHTML = (ad||[]).map(x=>`<div class="card p-5 border-l-4 border-red-500"><b>${x.nick}</b><p class="text-[10px] opacity-50 uppercase">${x.motivo}</p></div>`).join('');
-            document.getElementById('t-ban').innerHTML = (b||[]).map(x=>`<div class="card p-5 border-red-900 bg-red-900/10"><b>${x.nick}</b><p class="text-[10px] uppercase">${x.motivo}</p></div>`).join('');
         }
 
-        function openEdit(id, nome, h, g) {
-            document.getElementById('edit-id').value = id;
-            document.getElementById('edit-name').innerText = nome;
-            document.getElementById('edit-honra').value = h;
-            document.getElementById('edit-guerra').value = g;
-            document.getElementById('modal-edit').classList.remove('hidden');
-        }
-
-        async function saveEdit() {
-            const id = document.getElementById('edit-id').value;
-            const h = document.getElementById('edit-honra').value;
-            const g = document.getElementById('edit-guerra').value;
-            await sb.from('membros').update({ honra: h, guerra: g }).eq('id', id);
-            closeEdit(); load();
-        }
-
-        async function resetRank() {
-            if(!confirm("Deseja ZERAR a pontuação de TODOS os membros?")) return;
-            await sb.from('membros').update({ honra: 0, guerra: 0 }).neq('id', 0);
-            load();
+        function filterMembers() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const filtered = globalMembers.filter(m => m.nome.toLowerCase().includes(q));
+            renderTable(filtered);
         }
 
         async function saveConf() {
             const r = document.getElementById('conf-rank').value;
             const a = document.getElementById('conf-aviso').value;
             await sb.from('config_bot').upsert([{ chave: 'canal_ranking', valor: r }, { chave: 'canal_avisos', valor: a }]);
-            alert("Configurações salvas! Reinicie o bot para aplicar.");
+            alert("Canais salvos! O Bot enviará uma mensagem de ativação no canal de ranking em breve.");
         }
 
+        // Funções de auxílio (Editar, Ban, Reset) iguais ao anterior...
+        function openEdit(id, n, h, g) { document.getElementById('edit-id').value=id; document.getElementById('edit-name').innerText=n; document.getElementById('edit-honra').value=h; document.getElementById('edit-guerra').value=g; document.getElementById('modal-edit').classList.remove('hidden'); }
+        async function saveEdit() { const id=document.getElementById('edit-id').value; const h=document.getElementById('edit-honra').value; const g=document.getElementById('edit-guerra').value; await sb.from('membros').update({ honra: h, guerra: g }).eq('id', id); closeEdit(); load(); }
         function closeEdit() { document.getElementById('modal-edit').classList.add('hidden'); }
-        async function ban(id, nick) { const m = prompt("Motivo:"); if(!m) return; await sb.from('banidos').insert([{ nick, motivo: m, aplicado_por: currentUser }]); await sb.from('membros').delete().eq('id', id); load(); }
-        async function saveADV() { const n = document.getElementById('adv-n').value; const m = document.getElementById('adv-m').value; if(!n||!m) return; await sb.from('advertencias').insert([{ nick: n, motivo: m, autor: currentUser }]); load(); }
+        async function resetRank() { if(confirm("Zerar tudo?")) { await sb.from('membros').update({ honra: 0, guerra: 0 }).neq('id', 0); load(); } }
+        async function ban(id, n) { const m = prompt("Motivo:"); if(!m) return; await sb.from('banidos').insert([{ nick: n, motivo: m, aplicado_por: adminUser }]); await sb.from('membros').delete().eq('id', id); load(); }
+        async function saveADV() { const n = document.getElementById('adv-n').value; const m = document.getElementById('adv-m').value; if(!n||!m) return; await sb.from('advertencias').insert([{ nick: n, motivo: m, autor: adminUser }]); load(); }
         function tab(t) { ['home','membros','adv','ban','conf'].forEach(x=>{ document.getElementById('t-'+x).classList.toggle('hidden', x!==t); document.getElementById('b-'+x).classList.toggle('active', x===t); }); }
     </script>
 </body>
