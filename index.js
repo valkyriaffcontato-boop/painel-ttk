@@ -11,32 +11,31 @@ app.use(express.static('public'));
 
 const sb = createClient(process.env.SB_URL, process.env.SB_KEY);
 
-// LOGIN
 app.post('/api/login', (req, res) => {
     const { user, pass } = req.body;
     if (users[user] && users[user].pass === pass) return res.json({ success: true, user, cargo: users[user].cargo });
     res.status(401).json({ success: false });
 });
 
-app.listen(process.env.PORT || 3000, () => console.log("🌐 Painel TTK Online"));
+app.listen(process.env.PORT || 3000, () => console.log("🌐 Servidor Online"));
 
 // --- BOT DISCORD ---
 const client = new Client({ intents: [32767] });
 let msgRankingID = null;
+let currentRankChannel = null;
 
 client.once('ready', async () => {
-    console.log(`✅ Bot ${client.user.tag} Online`);
+    console.log(`✅ Bot ${client.user.tag} Ligado!`);
     
-    // REGISTRO DE COMANDOS /
     const commands = [
         { name: 'setup', description: 'Painel de verificação TTK' },
         { 
-            name: 'pontos', 
-            description: 'Gerenciar pontos de um membro',
+            name: 'atualizarrank', 
+            description: 'Atualiza pontos de um membro',
             options: [
-                { name: 'membro', description: 'Nome do membro', type: 3, required: true },
-                { name: 'honra', description: 'Quantidade de honra', type: 4, required: true },
-                { name: 'guerra', description: 'Quantidade de guerra', type: 4, required: true }
+                { name: 'membro', description: 'Nick do soldado', type: 3, required: true },
+                { name: 'honra', description: 'Nova Honra', type: 4, required: true },
+                { name: 'guerra', description: 'Nova Guerra', type: 4, required: true }
             ]
         }
     ];
@@ -44,7 +43,7 @@ client.once('ready', async () => {
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
     try {
         await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
-    } catch (e) { console.log(e); }
+    } catch (e) { console.error("Erro ao registrar comandos:", e); }
 
     // LOOP RANKING (1 MINUTO)
     setInterval(async () => {
@@ -55,6 +54,16 @@ client.once('ready', async () => {
         const canalID = c.find(x => x.chave === 'canal_ranking')?.valor;
         if(!canalID || canalID === '0') return;
 
+        // Se o canal mudou no site, avisa no novo canal
+        if(canalID !== currentRankChannel) {
+            const chan = client.channels.cache.get(canalID);
+            if(chan) {
+                await chan.send("🛰️ **Sistema de Ranking TTK Conectado a este canal!**");
+                msgRankingID = null; // Força criar nova msg no canal novo
+                currentRankChannel = canalID;
+            }
+        }
+
         const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
         let tabela = "NOME            | HONRA | GUERRA\n--------------------------------\n";
         m.forEach(s => tabela += `${(s.nome || '---').padEnd(15, ' ')} | ${(s.honra || 0).toString().padStart(5, ' ')} | ${(s.guerra || 0).toString().padStart(4, ' ')}\n`);
@@ -63,7 +72,7 @@ client.once('ready', async () => {
             .setTitle('🏆 RANKING TTK BRASIL')
             .setColor('#fbbf24')
             .setDescription(`\`\`\`\n${tabela}\n\`\`\``)
-            .setFooter({ text: `Atualizado: ${agora}` });
+            .setFooter({ text: `Sincronizado: ${agora}` });
 
         const canal = client.channels.cache.get(canalID);
         if(canal) {
@@ -80,22 +89,20 @@ client.once('ready', async () => {
     }, 60000);
 });
 
-// COMANDOS E INTERAÇÕES
 client.on('interactionCreate', async (i) => {
-    // Gerenciar Rank via Bot
-    if (i.commandName === 'pontos') {
+    if (i.commandName === 'atualizarrank') {
         const nome = i.options.getString('membro');
         const h = i.options.getInteger('honra');
         const g = i.options.getInteger('guerra');
 
         const { error } = await sb.from('membros').update({ honra: h, guerra: g }).ilike('nome', nome);
         if(error) return i.reply({ content: '❌ Membro não encontrado!', ephemeral: true });
-        i.reply({ content: `✅ Pontos de **${nome}** atualizados: H: ${h} | G: ${g}`, ephemeral: true });
+        i.reply({ content: `✅ Pontos de **${nome}** atualizados para H: ${h} | G: ${g}` });
     }
 
     if (i.commandName === 'setup') {
         const btn = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('v').setLabel('VERIFICAR').setStyle(ButtonStyle.Success));
-        await i.reply({ content: 'Painel de Verificação TTK:', components: [btn] });
+        await i.reply({ content: 'Painel de Verificação:', components: [btn] });
     }
 
     if (i.customId === 'v') {
