@@ -1,0 +1,9 @@
+{
+  "admins": [
+    { "user": "admin_ttk", "pass": "12345" }
+  ],
+  "membros": [
+    { "nick": "angello_campos", "advs": 0, "historico": [] },
+    { "nick": "Biel calvo'", "advs": 1, "historico": [{"data": "10/10", "motivo": "Atraso", "por": "Dono"}] }
+  ]
+}
