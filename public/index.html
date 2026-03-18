@@ -3,119 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel da Guilda - Gestão Total</title>
-    <!-- Bootstrap para Responsividade -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <title>TTK BRASIL | DASHBOARD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #0f0f0f; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; }
-        .navbar { background-color: #1a1a1a !important; border-bottom: 2px solid #ff4655; }
-        .card { background-color: #1a1a1a; border: none; border-radius: 10px; margin-bottom: 20px; }
-        .nav-link { color: #888; cursor: pointer; transition: 0.3s; }
-        .nav-link:hover, .nav-link.active { color: #ff4655 !important; }
-        .table-dark { --bs-table-bg: #1a1a1a; }
-        .badge-warn { background-color: #ffc107; color: #000; }
-        .badge-ban { background-color: #dc3545; color: #fff; }
-        .search-box { background: #252525; border: 1px solid #444; color: white; }
-        .search-box:focus { background: #303030; color: white; border-color: #ff4655; box-shadow: none; }
-        iframe { border-radius: 10px; border: 1px solid #333; }
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@400;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #020408; color: #fff; }
+        .gold-txt { background: linear-gradient(135deg, #facc15, #a16207); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Montserrat'; font-weight: 900; }
+        .card { background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; backdrop-filter: blur(10px); }
+        .tab-btn { padding: 12px 15px; font-weight: bold; color: #475569; border-bottom: 2px solid transparent; text-transform: uppercase; font-size: 10px; white-space: nowrap; }
+        .tab-btn.active { color: #facc15; border-color: #facc15; }
+        input { background: #000 !important; border: 1px solid #333 !important; color: #fff !important; padding: 12px; border-radius: 10px; outline: none; width: 100%; }
+        .hidden { display: none; }
+        iframe { width: 100%; height: 600px; border-radius: 15px; border: 1px solid #333; }
     </style>
 </head>
-<body>
+<body class="p-2 md:p-10">
 
-<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="#"><span style="color:#ff4655">GUILDA</span> ADMIN</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link active" onclick="showSection('rank')">RANKING</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="showSection('adv')">ADVERTÊNCIAS</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="showSection('ban')">BANIMENTOS</a></li>
-                <li class="nav-item"><a class="nav-link" onclick="showSection('form')">FORMULÁRIOS</a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
-
-<div class="container mt-4">
-    <!-- SEÇÃO RANKING -->
-    <div id="section-rank" class="content-section">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3>Ranking de Honra</h3>
-            <input type="text" id="searchRank" class="form-control search-box w-50" placeholder="Buscar membro..." onkeyup="filterTable('rankTable', 'searchRank')">
-        </div>
-        <div class="table-responsive card p-3">
-            <table class="table table-dark table-hover" id="rankTable">
-                <thead>
-                    <tr><th>Nome</th><th>Honra</th><th>Guerra</th><th>Status</th></tr>
-                </thead>
-                <tbody id="rankData">
-                    <!-- O BOT OU VOCÊ PODE ALIMENTAR AQUI -->
-                    <tr><td>TTK TRALHA!!</td><td>3180</td><td>166</td><td>12 HORAS</td></tr>
-                    <tr><td>BleX calvo!</td><td>1134</td><td>0</td><td>ON-LINE</td></tr>
-                </tbody>
-            </table>
+    <!-- TELA DE LOGIN (CORRIGIDA) -->
+    <div id="login-screen" class="fixed inset-0 bg-[#020408] z-[500] flex items-center justify-center p-4">
+        <div class="card p-8 w-full max-w-sm text-center">
+            <h1 class="text-4xl gold-txt mb-8 uppercase italic">TTK BRASIL</h1>
+            <input type="text" id="l-user" placeholder="USUÁRIO" class="mb-3 uppercase">
+            <input type="password" id="l-pass" placeholder="SENHA" class="mb-6">
+            <button onclick="doLogin()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl">ENTRAR</button>
         </div>
     </div>
 
-    <!-- SEÇÃO ADVERTÊNCIAS -->
-    <div id="section-adv" class="content-section" style="display:none;">
-        <h3>Lista de Advertências</h3>
-        <div class="table-responsive card p-3">
-            <table class="table table-dark table-hover">
-                <thead><tr><th>Membro</th><th>Motivo</th><th>Data</th><th>Grau</th></tr></thead>
-                <tbody>
-                    <tr><td>Membro Exemplo</td><td>Faltou na Guerra</td><td>15/10/2023</td><td><span class="badge badge-warn">ADV 1</span></td></tr>
-                </tbody>
-            </table>
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="max-w-6xl mx-auto hidden">
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl gold-txt italic">TTK BRASIL</h1>
+            <button onclick="resetRank()" class="bg-red-600 text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase">Zerar Rank</button>
+        </header>
+
+        <!-- MENU RESPONSIVO -->
+        <nav class="flex gap-1 mb-6 border-b border-white/5 overflow-x-auto">
+            <button onclick="tab('home')" id="b-home" class="tab-btn active">Home</button>
+            <button onclick="tab('membros')" id="b-membros" class="tab-btn">Membros</button>
+            <button onclick="tab('adv')" id="b-adv" class="tab-btn">ADV</button>
+            <button onclick="tab('ban')" id="b-ban" class="tab-btn">Bans</button>
+            <button onclick="tab('form')" id="b-form" class="tab-btn">Formulário</button>
+            <button onclick="tab('conf')" id="b-conf" class="tab-btn text-blue-400">Config</button>
+        </nav>
+
+        <!-- HOME -->
+        <div id="t-home" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="card p-6 text-center text-yellow-500"><p class="text-[10px] text-slate-500 uppercase">Honra Total</p><h2 id="h-total" class="text-3xl font-black">0</h2></div>
+                <div class="card p-6 text-center text-green-500"><p class="text-[10px] text-slate-500 uppercase">Guerra Total</p><h2 id="g-total" class="text-3xl font-black">0</h2></div>
+                <div class="card p-6 text-center text-white"><p class="text-[10px] text-slate-500 uppercase">Membros</p><h2 id="m-total" class="text-3xl font-black">0/55</h2></div>
+            </div>
+            <div class="card p-6"><h3 class="gold-txt mb-4 uppercase italic">Top 5 Membros</h3><div id="top5" class="space-y-2"></div></div>
+        </div>
+
+        <!-- MEMBROS -->
+        <div id="t-membros" class="hidden space-y-4">
+            <input type="text" id="search" onkeyup="filterMembros()" placeholder="Pesquisar nick..." class="card">
+            <div class="card overflow-hidden"><table class="w-full text-left text-xs"><thead class="bg-black/40 text-slate-500"><tr><th class="p-4">Nick</th><th class="p-4 text-center">Honra</th><th class="p-4 text-right">Ação</th></tr></thead><tbody id="lista-m"></tbody></table></div>
+        </div>
+
+        <!-- ADVERTÊNCIAS -->
+        <div id="t-adv" class="hidden space-y-4">
+            <div class="card p-6 space-y-3">
+                <input type="text" id="adv-n" placeholder="Nick do Membro">
+                <input type="text" id="adv-m" placeholder="Motivo">
+                <button onclick="saveADV()" class="bg-red-600 w-full py-3 font-bold rounded-xl">APLICAR ADVERTÊNCIA</button>
+            </div>
+            <div id="lista-adv" class="grid gap-3"></div>
+        </div>
+
+        <!-- BANIMENTOS (COM PESQUISA) -->
+        <div id="t-ban" class="hidden space-y-4">
+            <input type="text" id="searchBan" onkeyup="filterBans()" placeholder="Pesquisar na Lista Negra..." class="card">
+            <div id="lista-ban" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <!-- FORMULÁRIO -->
+        <div id="t-form" class="hidden">
+            <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdAd2RFLtFPz6wV3dMdIKS6JebdMtmayLAm1XAEv3TM2tYD1A/viewform?embedded=true">Carregando…</iframe>
+        </div>
+
+        <!-- CONFIG BOT -->
+        <div id="t-conf" class="hidden card p-6 space-y-4 text-center">
+            <h3 class="gold-txt">STATUS DO BOT</h3>
+            <p class="text-xs text-slate-400">O Bot monitora este site e atualiza o Discord automaticamente.</p>
+            <input type="text" id="conf-webhook" placeholder="Link da Webhook do Discord">
+            <button onclick="saveConf()" class="bg-blue-600 w-full py-3 font-bold rounded-xl">SALVAR CONFIG</button>
         </div>
     </div>
 
-    <!-- SEÇÃO BANIMENTOS -->
-    <div id="section-ban" class="content-section" style="display:none;">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3>Lista Negra (Bans)</h3>
-            <input type="text" id="searchBan" class="form-control search-box w-50" placeholder="Pesquisar banido..." onkeyup="filterTable('banTable', 'searchBan')">
-        </div>
-        <div class="table-responsive card p-3">
-            <table class="table table-dark table-hover" id="banTable">
-                <thead><tr><th>Nome</th><th>Motivo do Ban</th><th>ID/UID</th></tr></thead>
-                <tbody>
-                    <tr><td>Ex-Membro 01</td><td>Toxicidade grave</td><td>NULL</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <script>
+        // CONFIGURAÇÃO SUPABASE
+        const SB_URL = 'https://docrdiftmbozveolevec.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvY3JkaWZ0bWJvenZlb2xldmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MTA5NjcsImV4cCI6MjA4OTA4Njk2N30.lutrywrjLsaF2sSUFOqTiC75ZrscHsrQ9KOlR-vuXkU';
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+        let globalM = [], globalB = [];
 
-    <!-- SEÇÃO FORMULÁRIO -->
-    <div id="section-form" class="content-section" style="display:none;">
-        <h3>Formulário de Recrutamento / Denúncia</h3>
-        <div class="ratio ratio-16x9">
-            <!-- REPLACES: Cole o link do seu Google Forms aqui -->
-            <iframe src="COLOQUE_AQUI_O_LINK_DO_GOOGLE_FORMS">Carregando…</iframe>
-        </div>
-    </div>
-</div>
-
-<script>
-    function showSection(id) {
-        document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.getElementById('section-' + id).style.display = 'block';
-        event.target.classList.add('active');
-    }
-
-    function filterTable(tableId, inputId) {
-        let input = document.getElementById(inputId).value.toUpperCase();
-        let rows = document.getElementById(tableId).getElementsByTagName("tr");
-        for (let i = 1; i < rows.length; i++) {
-            rows[i].style.display = rows[i].innerText.toUpperCase().includes(input) ? "" : "none";
+        // LOGIN SIMPLES (SUBSTITUINDO A API QUE DAVA ERRO)
+        function doLogin() {
+            const user = document.getElementById('l-user').value;
+            const pass = document.getElementById('l-pass').value;
+            if(user.toLowerCase() === "admin" && pass === "ttk123") { // COLOQUE SUA SENHA AQUI
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                load();
+            } else { alert("Usuário ou Senha Incorretos!"); }
         }
-    }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        async function load() {
+            const { data: m } = await sb.from('membros').select('*').order('honra', {ascending: false});
+            const { data: ad } = await sb.from('advertencias').select('*').order('id', {descending: true});
+            const { data: b } = await sb.from('banidos').select('*').order('id', {descending: true});
+            
+            globalM = m || [];
+            globalB = b || [];
+
+            document.getElementById('h-total').innerText = globalM.reduce((a,x)=>a+x.honra,0).toLocaleString();
+            document.getElementById('m-total').innerText = `${globalM.length}/55`;
+            
+            document.getElementById('top5').innerHTML = globalM.slice(0,5).map((x,i)=>`<div class="flex justify-between p-3 bg-white/5 rounded-xl border-l-4 border-yellow-500"><span>#${i+1} ${x.nome}</span><span class="text-yellow-500">${x.honra}</span></div>`).join('');
+            
+            renderMembros(globalM);
+            renderBans(globalB);
+
+            document.getElementById('lista-adv').innerHTML = (ad||[]).map(x=>`<div class="card p-4 border-l-4 border-red-500 flex justify-between"><div><b>${x.nick}</b><p class="text-[10px] opacity-50">${x.motivo}</p></div><button onclick="delAdv(${x.id})" class="text-red-500"><i class="fas fa-trash"></i></button></div>`).join('');
+        }
+
+        function renderMembros(list) {
+            document.getElementById('lista-m').innerHTML = list.map(x => `<tr class="border-b border-white/5"><td class="p-4"><b>${x.nome}</b></td><td class="p-4 text-center text-yellow-500">${x.honra}</td><td class="p-4 text-right"><button onclick="banir(${x.id},'${x.nome}')" class="text-red-600"><i class="fas fa-user-slash"></i></button></td></tr>`).join('');
+        }
+
+        function renderBans(list) {
+            document.getElementById('lista-ban').innerHTML = list.map(x => `<div class="card p-4 bg-red-900/10 border-red-500/20"><b>${x.nick}</b><p class="text-[10px] opacity-50">${x.motivo}</p></div>`).join('');
+        }
+
+        function filterMembros() { 
+            const q = document.getElementById('search').value.toLowerCase(); 
+            renderMembros(globalM.filter(m => m.nome.toLowerCase().includes(q))); 
+        }
+
+        function filterBans() { 
+            const q = document.getElementById('searchBan').value.toLowerCase(); 
+            renderBans(globalB.filter(b => b.nick.toLowerCase().includes(q))); 
+        }
+
+        async function saveADV() {
+            const n = document.getElementById('adv-n').value;
+            const m = document.getElementById('adv-m').value;
+            if(!n || !m) return alert("Preencha tudo!");
+            await sb.from('advertencias').insert([{ nick: n, motivo: m }]);
+            load();
+        }
+
+        async function banir(id, nome) {
+            const m = prompt("Motivo do Banimento:");
+            if(!m) return;
+            await sb.from('banidos').insert([{ nick: nome, motivo: m }]);
+            await sb.from('membros').delete().eq('id', id);
+            load();
+        }
+
+        function tab(t) {
+            ['home','membros','adv','ban','conf','form'].forEach(x=>{
+                document.getElementById('t-'+x).classList.toggle('hidden', x!==t);
+                document.getElementById('b-'+x).classList.toggle('active', x===t);
+            });
+        }
+    </script>
 </body>
 </html>
