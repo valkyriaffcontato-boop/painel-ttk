@@ -9,75 +9,63 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@400;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #020408; color: #fff; }
+        body { font-family: 'Inter', sans-serif; background: #020408; color: #fff; overflow-x: hidden; }
         .gold-txt { background: linear-gradient(135deg, #facc15, #a16207); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Montserrat'; font-weight: 900; }
         .card { background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; backdrop-filter: blur(10px); }
-        .tab-btn { padding: 12px 15px; font-weight: bold; color: #475569; border-bottom: 2px solid transparent; text-transform: uppercase; font-size: 10px; white-space: nowrap; }
+        .tab-btn { padding: 12px 20px; font-weight: bold; color: #475569; border-bottom: 2px solid transparent; text-transform: uppercase; font-size: 11px; }
         .tab-btn.active { color: #facc15; border-color: #facc15; }
-        input { background: #000 !important; border: 1px solid #333 !important; color: #fff !important; padding: 12px; border-radius: 10px; outline: none; width: 100%; }
+        input { background: #000 !important; border: 1px solid #333 !important; color: #fff !important; padding: 12px; border-radius: 10px; outline: none; }
         .hidden { display: none; }
-        iframe { width: 100%; height: 600px; border-radius: 15px; border: 1px solid #333; }
+        iframe { width: 100%; height: 600px; border-radius: 20px; border: 1px solid #333; }
     </style>
 </head>
-<body class="p-2 md:p-10">
+<body class="p-4 md:p-10">
 
-    <!-- TELA DE LOGIN (CORRIGIDA) -->
+    <!-- LOGIN (VOLTEI O SISTEMA ORIGINAL DO RENDER) -->
     <div id="login-screen" class="fixed inset-0 bg-[#020408] z-[500] flex items-center justify-center p-4">
-        <div class="card p-8 w-full max-w-sm text-center">
+        <div class="card p-10 w-full max-w-sm text-center">
             <h1 class="text-4xl gold-txt mb-8 uppercase italic">TTK BRASIL</h1>
-            <input type="text" id="l-user" placeholder="USUÁRIO" class="mb-3 uppercase">
-            <input type="password" id="l-pass" placeholder="SENHA" class="mb-6">
+            <input type="text" id="l-user" placeholder="USUÁRIO" class="w-full mb-3 uppercase">
+            <input type="password" id="l-pass" placeholder="SENHA" class="w-full mb-6">
             <button onclick="doLogin()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl">ENTRAR</button>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboard" class="max-w-6xl mx-auto hidden">
-        <header class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl gold-txt italic">TTK BRASIL</h1>
-            <button onclick="resetRank()" class="bg-red-600 text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase">Zerar Rank</button>
+        <header class="flex justify-between items-center mb-10">
+            <h1 class="text-4xl gold-txt italic">TTK BRASIL</h1>
+            <button onclick="resetRank()" class="bg-red-600 text-white px-6 py-2 rounded-full text-[10px] font-bold uppercase">Zerar Rank</button>
         </header>
 
-        <!-- MENU RESPONSIVO -->
-        <nav class="flex gap-1 mb-6 border-b border-white/5 overflow-x-auto">
+        <nav class="flex gap-2 mb-8 border-b border-white/5 overflow-x-auto no-scrollbar">
             <button onclick="tab('home')" id="b-home" class="tab-btn active">Home</button>
             <button onclick="tab('membros')" id="b-membros" class="tab-btn">Membros</button>
-            <button onclick="tab('adv')" id="b-adv" class="tab-btn">ADV</button>
-            <button onclick="tab('ban')" id="b-ban" class="tab-btn">Bans</button>
+            <button onclick="tab('adv')" id="b-adv" class="tab-btn">Advertências</button>
+            <button onclick="tab('ban')" id="b-ban" class="tab-btn">Banimentos</button>
             <button onclick="tab('form')" id="b-form" class="tab-btn">Formulário</button>
-            <button onclick="tab('conf')" id="b-conf" class="tab-btn text-blue-400">Config</button>
+            <button onclick="tab('conf')" id="b-conf" class="tab-btn text-blue-400">Bot Config</button>
         </nav>
 
         <!-- HOME -->
         <div id="t-home" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="card p-6 text-center text-yellow-500"><p class="text-[10px] text-slate-500 uppercase">Honra Total</p><h2 id="h-total" class="text-3xl font-black">0</h2></div>
-                <div class="card p-6 text-center text-green-500"><p class="text-[10px] text-slate-500 uppercase">Guerra Total</p><h2 id="g-total" class="text-3xl font-black">0</h2></div>
-                <div class="card p-6 text-center text-white"><p class="text-[10px] text-slate-500 uppercase">Membros</p><h2 id="m-total" class="text-3xl font-black">0/55</h2></div>
+                <div class="card p-6 text-center text-yellow-500"><p class="text-[10px] text-slate-500 uppercase mb-1">Honra Total</p><h2 id="h-total" class="text-3xl font-black">0</h2></div>
+                <div class="card p-6 text-center text-green-500"><p class="text-[10px] text-slate-500 uppercase mb-1">Guerra Total</p><h2 id="g-total" class="text-3xl font-black">0</h2></div>
+                <div class="card p-6 text-center text-white"><p class="text-[10px] text-slate-500 uppercase mb-1">Membros</p><h2 id="m-total" class="text-3xl font-black">0/55</h2></div>
             </div>
-            <div class="card p-6"><h3 class="gold-txt mb-4 uppercase italic">Top 5 Membros</h3><div id="top5" class="space-y-2"></div></div>
+            <div class="card p-8"><h3 class="gold-txt mb-6 uppercase italic">Top 5 Membros</h3><div id="top5" class="space-y-3"></div></div>
         </div>
 
         <!-- MEMBROS -->
         <div id="t-membros" class="hidden space-y-4">
-            <input type="text" id="search" onkeyup="filterMembros()" placeholder="Pesquisar nick..." class="card">
-            <div class="card overflow-hidden"><table class="w-full text-left text-xs"><thead class="bg-black/40 text-slate-500"><tr><th class="p-4">Nick</th><th class="p-4 text-center">Honra</th><th class="p-4 text-right">Ação</th></tr></thead><tbody id="lista-m"></tbody></table></div>
+            <div class="card p-4 flex items-center gap-3"><i class="fas fa-search text-slate-500"></i><input type="text" id="search" onkeyup="filter()" placeholder="Pesquisar nick..." class="bg-transparent border-none flex-1"></div>
+            <div class="card overflow-hidden"><table class="w-full text-left"><thead class="bg-black/40 text-[10px] text-slate-500 font-black uppercase"><tr><th class="p-5">Nickname</th><th class="p-5 text-center">Honra</th><th class="p-5 text-center">Guerra</th><th class="p-5 text-right">Ação</th></tr></thead><tbody id="lista-m" class="divide-y divide-white/5"></tbody></table></div>
         </div>
 
-        <!-- ADVERTÊNCIAS -->
-        <div id="t-adv" class="hidden space-y-4">
-            <div class="card p-6 space-y-3">
-                <input type="text" id="adv-n" placeholder="Nick do Membro">
-                <input type="text" id="adv-m" placeholder="Motivo">
-                <button onclick="saveADV()" class="bg-red-600 w-full py-3 font-bold rounded-xl">APLICAR ADVERTÊNCIA</button>
-            </div>
-            <div id="lista-adv" class="grid gap-3"></div>
-        </div>
-
-        <!-- BANIMENTOS (COM PESQUISA) -->
+        <!-- BANIMENTOS COM PESQUISA -->
         <div id="t-ban" class="hidden space-y-4">
-            <input type="text" id="searchBan" onkeyup="filterBans()" placeholder="Pesquisar na Lista Negra..." class="card">
-            <div id="lista-ban" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+            <div class="card p-4 flex items-center gap-3"><i class="fas fa-search text-slate-500"></i><input type="text" id="searchBan" onkeyup="filterBans()" placeholder="Pesquisar banido..." class="bg-transparent border-none flex-1 w-full"></div>
+            <div id="lista-ban" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
         </div>
 
         <!-- FORMULÁRIO -->
@@ -86,91 +74,87 @@
         </div>
 
         <!-- CONFIG BOT -->
-        <div id="t-conf" class="hidden card p-6 space-y-4 text-center">
-            <h3 class="gold-txt">STATUS DO BOT</h3>
-            <p class="text-xs text-slate-400">O Bot monitora este site e atualiza o Discord automaticamente.</p>
-            <input type="text" id="conf-webhook" placeholder="Link da Webhook do Discord">
-            <button onclick="saveConf()" class="bg-blue-600 w-full py-3 font-bold rounded-xl">SALVAR CONFIG</button>
+        <div id="t-conf" class="hidden card p-8 space-y-4">
+            <h3 class="gold-txt uppercase">Configurar Canais</h3>
+            <input type="text" id="conf-rank" placeholder="ID Canal Ranking" class="w-full">
+            <button onclick="saveConf()" class="bg-blue-600 w-full py-3 font-bold rounded-xl">SALVAR E ATIVAR</button>
+        </div>
+
+        <!-- ADV -->
+        <div id="t-adv" class="hidden space-y-6">
+            <div class="card p-8 flex flex-col gap-2"><input type="text" id="adv-n" placeholder="Nick"><input type="text" id="adv-m" placeholder="Motivo"><button onclick="saveADV()" class="bg-red-600 py-3 font-bold rounded-xl">APLICAR ADV</button></div>
+            <div id="lista-adv" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR -->
+    <div id="modal-edit" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[600]">
+        <div class="card p-8 w-full max-w-sm">
+            <h2 id="edit-name" class="gold-txt mb-4 uppercase">---</h2>
+            <input type="hidden" id="edit-id">
+            <input type="number" id="edit-h" placeholder="Honra" class="w-full mb-3">
+            <input type="number" id="edit-g" placeholder="Guerra" class="w-full mb-6">
+            <button onclick="saveEdit()" class="w-full bg-green-600 font-black py-3 rounded-xl mb-2">SALVAR</button>
+            <button onclick="closeEdit()" class="w-full text-slate-500 font-bold">CANCELAR</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO SUPABASE
         const SB_URL = 'https://docrdiftmbozveolevec.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvY3JkaWZ0bWJvenZlb2xldmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MTA5NjcsImV4cCI6MjA4OTA4Njk2N30.lutrywrjLsaF2sSUFOqTiC75ZrscHsrQ9KOlR-vuXkU';
         const sb = supabase.createClient(SB_URL, SB_KEY);
-        let globalM = [], globalB = [];
+        let adminUser = "", globalM = [], globalB = [];
 
-        // LOGIN SIMPLES (SUBSTITUINDO A API QUE DAVA ERRO)
-        function doLogin() {
-            const user = document.getElementById('l-user').value;
+        async function doLogin() {
+            const user = document.getElementById('l-user').value.toUpperCase();
             const pass = document.getElementById('l-pass').value;
-            if(user.toLowerCase() === "admin" && pass === "ttk123") { // COLOQUE SUA SENHA AQUI
-                document.getElementById('login-screen').classList.add('hidden');
+            // VOLTEI O FETCH ORIGINAL QUE CONECTA COM SEU RENDER
+            const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user, pass}) });
+            if(res.ok) {
+                const d = await res.json(); adminUser = d.user;
+                document.getElementById('login-screen').remove();
                 document.getElementById('dashboard').classList.remove('hidden');
                 load();
-            } else { alert("Usuário ou Senha Incorretos!"); }
+            } else {
+                alert("Usuário ou Senha Incorretos!");
+            }
         }
 
         async function load() {
             const { data: m } = await sb.from('membros').select('*').order('honra', {ascending: false});
             const { data: ad } = await sb.from('advertencias').select('*').order('id', {descending: true});
             const { data: b } = await sb.from('banidos').select('*').order('id', {descending: true});
-            
             globalM = m || [];
             globalB = b || [];
-
             document.getElementById('h-total').innerText = globalM.reduce((a,x)=>a+x.honra,0).toLocaleString();
+            document.getElementById('g-total').innerText = globalM.reduce((a,x)=>a+x.guerra,0);
             document.getElementById('m-total').innerText = `${globalM.length}/55`;
-            
-            document.getElementById('top5').innerHTML = globalM.slice(0,5).map((x,i)=>`<div class="flex justify-between p-3 bg-white/5 rounded-xl border-l-4 border-yellow-500"><span>#${i+1} ${x.nome}</span><span class="text-yellow-500">${x.honra}</span></div>`).join('');
-            
-            renderMembros(globalM);
+            document.getElementById('top5').innerHTML = globalM.slice(0,5).map((x,i)=>`<div class="flex justify-between p-4 bg-white/5 rounded-xl border-l-4 border-yellow-500 font-bold"><span>#${i+1} ${x.nome}</span><span>${x.honra} pts</span></div>`).join('');
+            renderTable(globalM);
             renderBans(globalB);
-
-            document.getElementById('lista-adv').innerHTML = (ad||[]).map(x=>`<div class="card p-4 border-l-4 border-red-500 flex justify-between"><div><b>${x.nick}</b><p class="text-[10px] opacity-50">${x.motivo}</p></div><button onclick="delAdv(${x.id})" class="text-red-500"><i class="fas fa-trash"></i></button></div>`).join('');
+            document.getElementById('lista-adv').innerHTML = (ad||[]).map(x=>`<div class="card p-5 border-l-4 border-red-500"><b>${x.nick}</b><p class="text-[10px] opacity-50 uppercase">${x.motivo}</p></div>`).join('');
         }
 
-        function renderMembros(list) {
-            document.getElementById('lista-m').innerHTML = list.map(x => `<tr class="border-b border-white/5"><td class="p-4"><b>${x.nome}</b></td><td class="p-4 text-center text-yellow-500">${x.honra}</td><td class="p-4 text-right"><button onclick="banir(${x.id},'${x.nome}')" class="text-red-600"><i class="fas fa-user-slash"></i></button></td></tr>`).join('');
+        function renderTable(list) {
+            document.getElementById('lista-m').innerHTML = list.map(x => `<tr class="hover:bg-white/[0.02]"><td class="p-5"><b>${x.nome}</b><br><small class="opacity-50">UID: ${x.uid||'---'}</small></td><td class="p-5 text-center text-yellow-500 font-bold">${x.honra}</td><td class="p-5 text-center text-green-500 font-bold">${x.guerra}</td><td class="p-5 text-right flex justify-end gap-2"><button onclick="openEdit(${x.id},'${x.nome}',${x.honra},${x.guerra})" class="text-blue-400 p-2"><i class="fas fa-edit"></i></button><button onclick="ban(${x.id},'${x.nome}')" class="text-red-600 p-2"><i class="fas fa-user-slash"></i></button></td></tr>`).join('');
         }
 
         function renderBans(list) {
-            document.getElementById('lista-ban').innerHTML = list.map(x => `<div class="card p-4 bg-red-900/10 border-red-500/20"><b>${x.nick}</b><p class="text-[10px] opacity-50">${x.motivo}</p></div>`).join('');
+            document.getElementById('lista-ban').innerHTML = list.map(x=>`<div class="card p-5 border-red-900 bg-red-900/10"><b>${x.nick}</b><p class="text-[10px] opacity-50 uppercase">${x.motivo}</p></div>`).join('');
         }
 
-        function filterMembros() { 
-            const q = document.getElementById('search').value.toLowerCase(); 
-            renderMembros(globalM.filter(m => m.nome.toLowerCase().includes(q))); 
-        }
-
-        function filterBans() { 
-            const q = document.getElementById('searchBan').value.toLowerCase(); 
-            renderBans(globalB.filter(b => b.nick.toLowerCase().includes(q))); 
-        }
-
-        async function saveADV() {
-            const n = document.getElementById('adv-n').value;
-            const m = document.getElementById('adv-m').value;
-            if(!n || !m) return alert("Preencha tudo!");
-            await sb.from('advertencias').insert([{ nick: n, motivo: m }]);
-            load();
-        }
-
-        async function banir(id, nome) {
-            const m = prompt("Motivo do Banimento:");
-            if(!m) return;
-            await sb.from('banidos').insert([{ nick: nome, motivo: m }]);
-            await sb.from('membros').delete().eq('id', id);
-            load();
-        }
-
-        function tab(t) {
-            ['home','membros','adv','ban','conf','form'].forEach(x=>{
-                document.getElementById('t-'+x).classList.toggle('hidden', x!==t);
-                document.getElementById('b-'+x).classList.toggle('active', x===t);
-            });
-        }
+        function filter() { const q = document.getElementById('search').value.toLowerCase(); renderTable(globalM.filter(m => m.nome.toLowerCase().includes(q))); }
+        function filterBans() { const q = document.getElementById('searchBan').value.toLowerCase(); renderBans(globalB.filter(b => b.nick.toLowerCase().includes(q))); }
+        
+        async function saveEdit() { const id=document.getElementById('edit-id').value; const h=document.getElementById('edit-h').value; const g=document.getElementById('edit-g').value; await sb.from('membros').update({honra:h,guerra:g}).eq('id',id); closeEdit(); load(); }
+        function openEdit(id,n,h,g) { document.getElementById('edit-id').value=id; document.getElementById('edit-name').innerText=n; document.getElementById('edit-h').value=h; document.getElementById('edit-g').value=g; document.getElementById('modal-edit').classList.remove('hidden'); }
+        function closeEdit() { document.getElementById('modal-edit').classList.add('hidden'); }
+        async function resetRank() { if(confirm("Zerar?")) { await sb.from('membros').update({honra:0,guerra:0}).neq('id',0); load(); } }
+        async function saveConf() { const r = document.getElementById('conf-rank').value; await sb.from('config_bot').upsert([{chave:'canal_ranking',valor:r}]); alert("Ativado!"); }
+        async function ban(id, n) { const m = prompt("Motivo:"); if(!m) return; await sb.from('banidos').insert([{ nick: n, motivo: m, aplicado_por: adminUser }]); await sb.from('membros').delete().eq('id', id); load(); }
+        async function saveADV() { const n = document.getElementById('adv-n').value; const m = document.getElementById('adv-m').value; await sb.from('advertencias').insert([{ nick: n, motivo: m, autor: adminUser }]); load(); }
+        
+        function tab(t) { ['home','membros','adv','ban','conf','form'].forEach(x=>{ document.getElementById('t-'+x).classList.toggle('hidden', x!==t); document.getElementById('b-'+x).classList.toggle('active', x===t); }); }
     </script>
 </body>
 </html>
