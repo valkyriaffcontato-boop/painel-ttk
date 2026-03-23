@@ -1,160 +1,188 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTK BRASIL | DASHBOARD</title>
+    <title>TTK BRASIL | PAINEL SUPREMO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Inter:wght@400;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #020408; color: #fff; overflow-x: hidden; }
-        .gold-txt { background: linear-gradient(135deg, #facc15, #a16207); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Montserrat'; font-weight: 900; }
-        .card { background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; backdrop-filter: blur(10px); }
-        .tab-btn { padding: 12px 20px; font-weight: bold; color: #475569; border-bottom: 2px solid transparent; text-transform: uppercase; font-size: 11px; }
-        .tab-btn.active { color: #facc15; border-color: #facc15; }
-        input { background: #000 !important; border: 1px solid #333 !important; color: #fff !important; padding: 12px; border-radius: 10px; outline: none; }
+        :root { --gold: #facc15; }
+        .dark { --bg: #020617; --card: #0f172a; --text: #f1f5f9; }
+        .light { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); transition: 0.3s; }
+        .premium-card { background-color: var(--card); border: 1px solid rgba(250, 204, 21, 0.1); border-radius: 24px; }
+        .tab-btn { padding: 10px 15px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-bottom: 2px solid transparent; }
+        .tab-btn.active { color: var(--gold); border-color: var(--gold); }
         .hidden { display: none; }
-        iframe { width: 100%; height: 600px; border-radius: 20px; border: 1px solid #333; }
     </style>
 </head>
 <body class="p-4 md:p-10">
 
-    <!-- LOGIN (VOLTEI O SISTEMA ORIGINAL DO RENDER) -->
-    <div id="login-screen" class="fixed inset-0 bg-[#020408] z-[500] flex items-center justify-center p-4">
-        <div class="card p-10 w-full max-w-sm text-center">
-            <h1 class="text-4xl gold-txt mb-8 uppercase italic">TTK BRASIL</h1>
-            <input type="text" id="l-user" placeholder="USUÁRIO" class="w-full mb-3 uppercase">
-            <input type="password" id="l-pass" placeholder="SENHA" class="w-full mb-6">
-            <button onclick="doLogin()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl">ENTRAR</button>
+    <!-- LOGIN -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-950 flex items-center justify-center z-[500]">
+        <div class="premium-card p-10 w-full max-w-sm text-center shadow-2xl">
+            <h1 class="text-4xl font-black italic text-yellow-500 mb-8">TTK BRASIL</h1>
+            <input type="text" id="l-user" placeholder="USUÁRIO" class="w-full bg-slate-900 border border-white/5 p-4 rounded-xl mb-3 text-white">
+            <input type="password" id="l-pass" placeholder="SENHA" class="w-full bg-slate-900 border border-white/5 p-4 rounded-xl mb-6 text-white">
+            <button onclick="doLogin()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl">ACESSAR</button>
         </div>
     </div>
 
-    <div id="dashboard" class="max-w-6xl mx-auto hidden">
-        <header class="flex justify-between items-center mb-10">
-            <h1 class="text-4xl gold-txt italic">TTK BRASIL</h1>
-            <button onclick="resetRank()" class="bg-red-600 text-white px-6 py-2 rounded-full text-[10px] font-bold uppercase">Zerar Rank</button>
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="max-w-7xl mx-auto hidden">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+            <h1 class="text-5xl font-black italic text-yellow-500">TTK BRASIL</h1>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleTheme()" class="p-3 rounded-full premium-card"><i class="fas fa-moon dark:text-yellow-400"></i></button>
+                <div id="notif-badge" onclick="tab('forms')" class="relative cursor-pointer hidden">
+                    <i class="fas fa-bell text-2xl"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-600 text-[10px] px-1.5 rounded-full">!</span>
+                </div>
+                <button onclick="loadAll()" class="bg-yellow-500 text-black px-6 py-2 rounded-full font-black text-xs">SINCRONIZAR</button>
+            </div>
         </header>
 
         <nav class="flex gap-2 mb-8 border-b border-white/5 overflow-x-auto no-scrollbar">
-            <button onclick="tab('home')" id="b-home" class="tab-btn active">Home</button>
+            <button onclick="tab('home')" id="b-home" class="tab-btn active">Início</button>
             <button onclick="tab('membros')" id="b-membros" class="tab-btn">Membros</button>
-            <button onclick="tab('adv')" id="b-adv" class="tab-btn">Advertências</button>
-            <button onclick="tab('ban')" id="b-ban" class="tab-btn">Banimentos</button>
-            <button onclick="tab('form')" id="b-form" class="tab-btn">Formulário</button>
-            <button onclick="tab('conf')" id="b-conf" class="tab-btn text-blue-400">Bot Config</button>
+            <button onclick="tab('forms')" id="b-forms" class="tab-btn">Recrutamento</button>
+            <button onclick="tab('adv')" id="b-adv" class="tab-btn">ADVs</button>
+            <button onclick="tab('abastecer')" id="b-abastecer" class="tab-btn">Abastecer</button>
         </nav>
 
-        <!-- HOME -->
-        <div id="t-home" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="card p-6 text-center text-yellow-500"><p class="text-[10px] text-slate-500 uppercase mb-1">Honra Total</p><h2 id="h-total" class="text-3xl font-black">0</h2></div>
-                <div class="card p-6 text-center text-green-500"><p class="text-[10px] text-slate-500 uppercase mb-1">Guerra Total</p><h2 id="g-total" class="text-3xl font-black">0</h2></div>
-                <div class="card p-6 text-center text-white"><p class="text-[10px] text-slate-500 uppercase mb-1">Membros</p><h2 id="m-total" class="text-3xl font-black">0/55</h2></div>
-            </div>
-            <div class="card p-8"><h3 class="gold-txt mb-6 uppercase italic">Top 5 Membros</h3><div id="top5" class="space-y-3"></div></div>
+        <!-- ABA HOME -->
+        <div id="t-home" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="premium-card p-6 text-center"><p class="text-slate-500 text-xs font-bold uppercase">Honra Total</p><h2 id="st-h" class="text-3xl font-black text-yellow-500">0</h2></div>
+            <div class="premium-card p-6 text-center"><p class="text-slate-500 text-xs font-bold uppercase">Guerra Total</p><h2 id="st-g" class="text-3xl font-black text-green-500">0</h2></div>
+            <div class="premium-card p-6 text-center"><p class="text-slate-500 text-xs font-bold uppercase">Efetivo</p><h2 id="st-m" class="text-3xl font-black">0/55</h2></div>
+            <div class="premium-card p-6 text-center bg-red-950/20"><p class="text-red-500 text-xs font-bold uppercase">Alvos de Ban</p><h2 id="st-b" class="text-3xl font-black text-red-500">0</h2></div>
         </div>
 
-        <!-- MEMBROS -->
+        <!-- ABA MEMBROS -->
         <div id="t-membros" class="hidden space-y-4">
-            <div class="card p-4 flex items-center gap-3"><i class="fas fa-search text-slate-500"></i><input type="text" id="search" onkeyup="filter()" placeholder="Pesquisar nick..." class="bg-transparent border-none flex-1"></div>
-            <div class="card overflow-hidden"><table class="w-full text-left"><thead class="bg-black/40 text-[10px] text-slate-500 font-black uppercase"><tr><th class="p-5">Nickname</th><th class="p-5 text-center">Honra</th><th class="p-5 text-center">Guerra</th><th class="p-5 text-right">Ação</th></tr></thead><tbody id="lista-m" class="divide-y divide-white/5"></tbody></table></div>
+            <div class="premium-card p-4 flex gap-3 items-center">
+                <i class="fas fa-search text-slate-500"></i>
+                <input type="text" id="search" onkeyup="filterM()" placeholder="Pesquisar por Nick ou ID..." class="bg-transparent border-none outline-none flex-1">
+            </div>
+            <div class="premium-card overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-black/20 text-[10px] text-slate-500 font-black uppercase">
+                        <tr><th class="p-5">Membro</th><th class="p-5">Função</th><th class="p-5">Honra</th><th class="p-5">Guerra</th><th class="p-5 text-right">Gestão</th></tr>
+                    </thead>
+                    <tbody id="list-m" class="divide-y divide-white/5"></tbody>
+                </table>
+            </div>
         </div>
 
-        <!-- BANIMENTOS COM PESQUISA -->
-        <div id="t-ban" class="hidden space-y-4">
-            <div class="card p-4 flex items-center gap-3"><i class="fas fa-search text-slate-500"></i><input type="text" id="searchBan" onkeyup="filterBans()" placeholder="Pesquisar banido..." class="bg-transparent border-none flex-1 w-full"></div>
-            <div id="lista-ban" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        <!-- ABA RECRUTAMENTO -->
+        <div id="t-forms" class="hidden space-y-6">
+            <h3 class="text-xl font-bold uppercase italic text-yellow-500">Pedidos de Entrada</h3>
+            <div id="list-f" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
 
-        <!-- FORMULÁRIO -->
-        <div id="t-form" class="hidden">
-            <iframe src="https://docs.google.com/forms/d/1VbmwzHgzy0IK8skR7tmynIrlgz9eQaj5SDagvgDI6LA/edit#responses">Carregando…</iframe>
-        </div>
-
-        <!-- CONFIG BOT -->
-        <div id="t-conf" class="hidden card p-8 space-y-4">
-            <h3 class="gold-txt uppercase">Configurar Canais</h3>
-            <input type="text" id="conf-rank" placeholder="ID Canal Ranking" class="w-full">
-            <button onclick="saveConf()" class="bg-blue-600 w-full py-3 font-bold rounded-xl">SALVAR E ATIVAR</button>
-        </div>
-
-        <!-- ADV -->
+        <!-- ABA ADVs -->
         <div id="t-adv" class="hidden space-y-6">
-            <div class="card p-8 flex flex-col gap-2"><input type="text" id="adv-n" placeholder="Nick"><input type="text" id="adv-m" placeholder="Motivo"><button onclick="saveADV()" class="bg-red-600 py-3 font-bold rounded-xl">APLICAR ADV</button></div>
-            <div id="lista-adv" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div class="premium-card p-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="text" id="adv-n" placeholder="Nick do Infrator" class="bg-black/30 p-4 rounded-xl border border-white/10">
+                <input type="text" id="adv-m" placeholder="Motivo" class="bg-black/30 p-4 rounded-xl border border-white/10">
+                <button onclick="saveADV()" class="bg-red-600 font-black rounded-xl">APLICAR ADV</button>
+            </div>
+            <div id="list-adv" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
         </div>
-    </div>
+        
+        <!-- ABA ABASTECER -->
+        <div id="t-abastecer" class="hidden space-y-6">
+            <div class="premium-card p-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="text" id="abs-n" placeholder="Seu Nick">
+                <input type="number" id="abs-q" placeholder="Quantidade">
+                <button onclick="saveABS()" class="bg-blue-600 font-black rounded-xl">CONFIRMAR ABASTECIMENTO</button>
+            </div>
+            <div id="list-abs" class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-bold uppercase"></div>
+        </div>
 
-    <!-- MODAL EDITAR -->
-    <div id="modal-edit" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[600]">
-        <div class="card p-8 w-full max-w-sm">
-            <h2 id="edit-name" class="gold-txt mb-4 uppercase">---</h2>
-            <input type="hidden" id="edit-id">
-            <input type="number" id="edit-h" placeholder="Honra" class="w-full mb-3">
-            <input type="number" id="edit-g" placeholder="Guerra" class="w-full mb-6">
-            <button onclick="saveEdit()" class="w-full bg-green-600 font-black py-3 rounded-xl mb-2">SALVAR</button>
-            <button onclick="closeEdit()" class="w-full text-slate-500 font-bold">CANCELAR</button>
-        </div>
     </div>
 
     <script>
         const SB_URL = 'https://docrdiftmbozveolevec.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvY3JkaWZ0bWJvenZlb2xldmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MTA5NjcsImV4cCI6MjA4OTA4Njk2N30.lutrywrjLsaF2sSUFOqTiC75ZrscHsrQ9KOlR-vuXkU';
         const sb = supabase.createClient(SB_URL, SB_KEY);
-        let adminUser = "", globalM = [], globalB = [];
+        let currentAdmin = "";
+        let globalM = [];
 
         async function doLogin() {
-            const user = document.getElementById('l-user').value.toUpperCase();
-            const pass = document.getElementById('l-pass').value;
-            // VOLTEI O FETCH ORIGINAL QUE CONECTA COM SEU RENDER
-            const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user, pass}) });
+            const u = document.getElementById('l-user').value.toUpperCase();
+            const p = document.getElementById('l-pass').value;
+            const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:u, pass:p}) });
             if(res.ok) {
-                const d = await res.json(); adminUser = d.user;
+                const d = await res.json(); currentAdmin = u;
                 document.getElementById('login-screen').remove();
                 document.getElementById('dashboard').classList.remove('hidden');
-                load();
-            } else {
-                alert("Usuário ou Senha Incorretos!");
-            }
+                loadAll();
+            } else alert("ACESSO NEGADO!");
         }
 
-        async function load() {
-            const { data: m } = await sb.from('membros').select('*').order('honra', {ascending: false});
-            const { data: ad } = await sb.from('advertencias').select('*').order('id', {descending: true});
-            const { data: b } = await sb.from('banidos').select('*').order('id', {descending: true});
+        async function loadAll() {
+            const { data: m } = await sb.from('membros').select('*').order('honra', {ascending:false});
+            const { data: f } = await sb.from('formularios').select('*').eq('status', 'PENDENTE');
+            const { data: ad } = await sb.from('advertencias').select('*').order('id', {descending:true});
+            const { data: abs } = await sb.from('abastecimento').select('*').order('id', {descending:true});
+            
             globalM = m || [];
-            globalB = b || [];
-            document.getElementById('h-total').innerText = globalM.reduce((a,x)=>a+x.honra,0).toLocaleString();
-            document.getElementById('g-total').innerText = globalM.reduce((a,x)=>a+x.guerra,0);
-            document.getElementById('m-total').innerText = `${globalM.length}/55`;
-            document.getElementById('top5').innerHTML = globalM.slice(0,5).map((x,i)=>`<div class="flex justify-between p-4 bg-white/5 rounded-xl border-l-4 border-yellow-500 font-bold"><span>#${i+1} ${x.nome}</span><span>${x.honra} pts</span></div>`).join('');
-            renderTable(globalM);
-            renderBans(globalB);
-            document.getElementById('lista-adv').innerHTML = (ad||[]).map(x=>`<div class="card p-5 border-l-4 border-red-500"><b>${x.nick}</b><p class="text-[10px] opacity-50 uppercase">${x.motivo}</p></div>`).join('');
+
+            // Stats
+            document.getElementById('st-h').innerText = globalM.reduce((a,x)=>a+x.honra,0).toLocaleString();
+            document.getElementById('st-m').innerText = `${globalM.length}/55`;
+
+            // Render Membros
+            document.getElementById('list-m').innerHTML = globalM.map(x => `
+                <tr class="hover:bg-white/5">
+                    <td class="p-5 font-bold">${x.nome}<br><span class="text-[9px] opacity-50">${x.nome_real || '---'} | ${x.idade || '0'} ANOS</span></td>
+                    <td class="p-5 text-xs font-black text-yellow-500 italic uppercase">${x.funcao || 'N/A'}</td>
+                    <td class="p-5 text-center font-bold text-yellow-500">${x.honra}</td>
+                    <td class="p-5 text-center font-bold text-green-500">${x.guerra}</td>
+                    <td class="p-5 text-right"><button onclick="banM(${x.id},'${x.nome}')" class="text-red-600"><i class="fas fa-trash"></i></button></td>
+                </tr>`).join('');
+
+            // Render Recrutamento
+            document.getElementById('list-f').innerHTML = (f || []).map(x => `
+                <div class="premium-card p-6 border-l-4 border-yellow-500">
+                    <h4 class="font-black text-lg gold-text">${x.nick}</h4>
+                    <p class="text-xs">${x.nome} | ${x.idade} ANOS | FUNÇÃO: ${x.funcao}</p>
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="actionForm(${x.id}, 'APROVADO', '${x.discord_id}')" class="bg-green-600 text-[10px] font-black px-4 py-2 rounded-lg">APROVAR</button>
+                        <button onclick="actionForm(${x.id}, 'RECUSADO', '${x.discord_id}')" class="bg-red-600 text-[10px] font-black px-4 py-2 rounded-lg">RECUSAR</button>
+                    </div>
+                </div>`).join('');
+            if(f && f.length > 0) document.getElementById('notif-badge').classList.remove('hidden');
+
+            // Render ADVs
+            document.getElementById('list-adv').innerHTML = (ad || []).map(x => `<div class="premium-card p-5 border-l-4 border-red-500"><b>${x.nick}</b><p class="text-[10px] opacity-50">${x.motivo}</p></div>`).join('');
         }
 
-        function renderTable(list) {
-            document.getElementById('lista-m').innerHTML = list.map(x => `<tr class="hover:bg-white/[0.02]"><td class="p-5"><b>${x.nome}</b><br><small class="opacity-50">UID: ${x.uid||'---'}</small></td><td class="p-5 text-center text-yellow-500 font-bold">${x.honra}</td><td class="p-5 text-center text-green-500 font-bold">${x.guerra}</td><td class="p-5 text-right flex justify-end gap-2"><button onclick="openEdit(${x.id},'${x.nome}',${x.honra},${x.guerra})" class="text-blue-400 p-2"><i class="fas fa-edit"></i></button><button onclick="ban(${x.id},'${x.nome}')" class="text-red-600 p-2"><i class="fas fa-user-slash"></i></button></td></tr>`).join('');
+        async function actionForm(id, status, discord_id) {
+            await sb.from('formularios').update({ status: status }).eq('id', id);
+            // O bot detecta essa mudança no servidor e envia a DM
+            alert(`Candidato ${status}!`);
+            loadAll();
         }
 
-        function renderBans(list) {
-            document.getElementById('lista-ban').innerHTML = list.map(x=>`<div class="card p-5 border-red-900 bg-red-900/10"><b>${x.nick}</b><p class="text-[10px] opacity-50 uppercase">${x.motivo}</p></div>`).join('');
+        function toggleTheme() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            html.classList.toggle('light');
         }
 
-        function filter() { const q = document.getElementById('search').value.toLowerCase(); renderTable(globalM.filter(m => m.nome.toLowerCase().includes(q))); }
-        function filterBans() { const q = document.getElementById('searchBan').value.toLowerCase(); renderBans(globalB.filter(b => b.nick.toLowerCase().includes(q))); }
-        
-        async function saveEdit() { const id=document.getElementById('edit-id').value; const h=document.getElementById('edit-h').value; const g=document.getElementById('edit-g').value; await sb.from('membros').update({honra:h,guerra:g}).eq('id',id); closeEdit(); load(); }
-        function openEdit(id,n,h,g) { document.getElementById('edit-id').value=id; document.getElementById('edit-name').innerText=n; document.getElementById('edit-h').value=h; document.getElementById('edit-g').value=g; document.getElementById('modal-edit').classList.remove('hidden'); }
-        function closeEdit() { document.getElementById('modal-edit').classList.add('hidden'); }
-        async function resetRank() { if(confirm("Zerar?")) { await sb.from('membros').update({honra:0,guerra:0}).neq('id',0); load(); } }
-        async function saveConf() { const r = document.getElementById('conf-rank').value; await sb.from('config_bot').upsert([{chave:'canal_ranking',valor:r}]); alert("Ativado!"); }
-        async function ban(id, n) { const m = prompt("Motivo:"); if(!m) return; await sb.from('banidos').insert([{ nick: n, motivo: m, aplicado_por: adminUser }]); await sb.from('membros').delete().eq('id', id); load(); }
-        async function saveADV() { const n = document.getElementById('adv-n').value; const m = document.getElementById('adv-m').value; await sb.from('advertencias').insert([{ nick: n, motivo: m, autor: adminUser }]); load(); }
-        
-        function tab(t) { ['home','membros','adv','ban','conf','form'].forEach(x=>{ document.getElementById('t-'+x).classList.toggle('hidden', x!==t); document.getElementById('b-'+x).classList.toggle('active', x===t); }); }
+        function tab(t) {
+            ['home','membros','forms','adv','abastecer'].forEach(x=>{
+                document.getElementById('t-'+x).classList.toggle('hidden', x!==t);
+                document.getElementById('b-'+x).classList.toggle('active', x===t);
+            });
+        }
+
+        loadAll();
     </script>
 </body>
 </html>
