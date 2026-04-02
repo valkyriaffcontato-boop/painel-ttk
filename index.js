@@ -1,121 +1,76 @@
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, InteractionType, REST, Routes } = require('discord.js');
-const { createClient } = require('@supabase/supabase-js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, REST, Routes, SlashCommandBuilder, PermissionFlagsBits, ChannelType } = require('discord.js');
 const express = require('express');
-const cors = require('cors');
-const users = require('./users.json');
+require('dotenv').config();
 
-// --- SERVIDOR WEB ---
+// --- SERVIDOR WEB PARA O RENDER NÃO DESLIGAR ---
 const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
+app.get('/', (req, res) => res.send('Bot Online!'));
+app.listen(process.env.PORT || 3000, () => console.log('Porta aberta para o Render.'));
 
-app.post('/api/login', (req, res) => {
-    const { user, pass } = req.body;
-    const u = user.toUpperCase();
-    if (users[u] && users[u].pass === pass) return res.json({ success: true, user: u, cargo: users[u].cargo });
-    res.status(401).json({ success: false });
+const client = new Client({
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
 });
 
-app.listen(process.env.PORT || 10000, '0.0.0.0', () => console.log("🌐 Servidor Web Ativo"));
+// --- IDs DA SUA LOJA (Troque pelos seus!) ---
+const CATEGORIA_TICKETS = "ID_DA_CATEGORIA"; 
+const CARGO_SUPORTE = "ID_DO_CARGO_ADM"; 
 
-// --- BOT DISCORD (INTENTS TOTAIS) ---
-const client = new Client({ intents: 32767 }); 
-const sb = createClient(process.env.SB_URL, process.env.SB_KEY);
+const PRODUTOS = [
+    { label: "🎟️ Passe Booyah", value: "passe", price: "R$ 6,00", desc: "Entrega rápida" },
+    { label: "💎 120 Diamantes", value: "d120", price: "R$ 4,49", desc: "Via ID" },
+    { label: "💎 310 Diamantes", value: "d310", price: "R$ 13,99", desc: "Via ID" }
+];
 
-let msgRankingID = null;
+const commands = [
+    new SlashCommandBuilder().setName('tabela').setDescription('Ver preços de Dimas e Passes'),
+    new SlashCommandBuilder().setName('setup').setDescription('Botão de ticket de vendas'),
+].map(c => c.toJSON());
 
-client.once('ready', async () => {
-    console.log(`✅ BOT CONECTADO: ${client.user.tag}`);
-
-    // Registrar Comandos /
-    const commands = [
-        { name: 'setup', description: 'Painel de verificação TTK' },
-        { 
-            name: 'atualizarrank', 
-            description: 'Muda honra/guerra de um membro',
-            options: [
-                { name: 'membro', description: 'Nick exato', type: 3, required: true },
-                { name: 'honra', description: 'Pontos', type: 4, required: true },
-                { name: 'guerra', description: 'Pontos', type: 4, required: true }
-            ]
-        }
-    ];
-
-    try {
-        const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
-        await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
-        console.log('✅ Comandos / registrados');
-    } catch (e) { console.error(e); }
-
-    // LOOP RANKING (1 MINUTO) - Edita a mesma mensagem
-    setInterval(async () => {
-        try {
-            const { data: config } = await sb.from('config_bot').select('*');
-            const canalID = config?.find(x => x.chave === 'canal_ranking')?.valor;
-            if (!canalID || canalID === '0') return;
-
-            const { data: membros } = await sb.from('membros').select('*').order('honra', { ascending: false });
-            if (!membros) return;
-
-            const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-            let txt = "RANK | NOME         | HONRA | GUERRA\n-----------------------------------\n";
-            membros.forEach((m, i) => {
-                txt += `${(i + 1).toString().padStart(2, '0')}   | ${(m.nome || '---').padEnd(12, ' ')} | ${(m.honra || 0).toString().padStart(5, ' ')} | ${(m.guerra || 0).toString().padStart(4, ' ')}\n`;
-            });
-
-            const embed = new EmbedBuilder()
-                .setTitle('🏆 RANKING OFICIAL TTK BRASIL')
-                .setColor('#fbbf24')
-                .setDescription(`\`\`\`\n${txt}\n\`\`\``)
-                .setFooter({ text: `Última Atualização: ${agora}` });
-
-            const canal = client.channels.cache.get(canalID);
-            if (canal) {
-                if (!msgRankingID) {
-                    const sent = await canal.send({ embeds: [embed] });
-                    msgRankingID = sent.id;
-                } else {
-                    const msg = await canal.messages.fetch(msgRankingID).catch(() => null);
-                    if (msg) await msg.edit({ embeds: [embed] });
-                    else { const sent = await canal.send({ embeds: [embed] }); msgRankingID = sent.id; }
-                }
-            }
-        } catch (err) { console.log("Erro no Loop:", err.message); }
-    }, 60000);
+client.on('ready', async () => {
+    console.log(`🔥 Loja FF no Render: ${client.user.tag}`);
+    const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+    await rest.put(Routes.applicationCommands(client.user.id), { body: commands });
 });
 
-// INTERAÇÕES
-client.on('interactionCreate', async (i) => {
-    if (i.commandName === 'atualizarrank') {
-        const n = i.options.getString('membro');
-        const h = i.options.getInteger('honra');
-        const g = i.options.getInteger('guerra');
-        await sb.from('membros').update({ honra: h, guerra: g }).ilike('nome', n);
-        return i.reply({ content: `✅ Pontos de **${n}** atualizados!`, ephemeral: true });
-    }
+client.on('interactionCreate', async interaction => {
+    if (interaction.commandName === 'tabela') {
+        const embed = new EmbedBuilder()
+            .setTitle("🔥 LOJA FF - PREÇOS 🔥")
+            .setDescription("Selecione o produto desejado abaixo:")
+            .setColor("#FF4500");
+        
+        PRODUTOS.forEach(p => embed.addFields({ name: p.label, value: `💰 ${p.price}`, inline: true }));
 
-    if (i.commandName === 'setup') {
-        const btn = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId('v').setLabel('VERIFICAR').setStyle(ButtonStyle.Success));
-        await i.reply({ content: '🛡️ **Painel de Verificação TTK BRASIL**', components: [btn] });
-    }
-
-    if (i.isButton() && i.customId === 'v') {
-        const modal = new ModalBuilder().setCustomId('mv').setTitle('CADASTRO TTK');
-        modal.addComponents(
-            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('n').setLabel('NICK NO JOGO').setStyle(TextInputStyle.Short).setRequired(true)),
-            new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId('uid').setLabel('UID (ID DO JOGO)').setStyle(TextInputStyle.Short).setRequired(true))
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('comprar').setLabel('🛒 COMPRAR').setStyle(ButtonStyle.Success)
         );
-        await i.showModal(modal);
+        await interaction.reply({ embeds: [embed], components: [row] });
     }
 
-    if (i.type === InteractionType.ModalSubmit && i.customId === 'mv') {
-        const nick = i.fields.getTextInputValue('n');
-        const uid = i.fields.getTextInputValue('uid');
-        await sb.from('membros').upsert({ nome: nick, uid: uid }, { onConflict: 'nome' });
-        try { await i.member.setNickname(`TTK | ${nick}`); } catch(e){}
-        await i.reply({ content: `✅ Verificado com sucesso! Seus dados foram salvos.`, ephemeral: true });
+    if (interaction.isButton() && interaction.customId === 'comprar') {
+        const menu = new StringSelectMenuBuilder()
+            .setCustomId('menu_p')
+            .setPlaceholder('Selecione o item...')
+            .addOptions(PRODUTOS.map(p => ({ label: p.label, description: p.price, value: p.value })));
+        await interaction.reply({ content: "Escolha o que deseja:", components: [new ActionRowBuilder().addComponents(menu)], ephemeral: true });
+    }
+
+    if (interaction.isStringSelectMenu() && interaction.customId === 'menu_p') {
+        const item = PRODUTOS.find(p => p.value === interaction.values[0]);
+        const canal = await interaction.guild.channels.create({
+            name: `🛒-${interaction.user.username}`,
+            type: ChannelType.GuildText,
+            parent: CATEGORIA_TICKETS,
+            permissionOverwrites: [
+                { id: interaction.guild.id, deny: [PermissionFlagsBits.ViewChannel] },
+                { id: interaction.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
+                { id: CARGO_SUPORTE, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] }
+            ]
+        });
+
+        await canal.send(`🔥 **Novo Pedido:** ${item.label}\n💵 **Valor:** ${item.price}\n👤 **Cliente:** ${interaction.user}`);
+        await interaction.update({ content: `✅ Ticket aberto: ${canal}`, components: [], ephemeral: true });
     }
 });
 
-client.login(process.env.DISCORD_TOKEN).catch(e => console.error("❌ ERRO LOGIN:", e.message));
+client.login(process.env.TOKEN);
