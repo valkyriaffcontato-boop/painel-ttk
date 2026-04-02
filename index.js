@@ -7,131 +7,130 @@ const express = require('express');
 
 const app = express();
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds, 
-        GatewayIntentBits.GuildMessages, 
-        GatewayIntentBits.MessageContent
-    ]
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
-// --- TABELA DE PREÇOS (Otimizada para seu lucro) ---
+// --- CONFIGURAÇÕES DE IDs (COLOQUE OS SEUS IDs AQUI) ---
+const ID_CARGO_SUPORTE = "1482212414211756154"; // ID do cargo que atende o suporte
+const ID_RICK_ADMIN = "1482212414211756154";   // Seu ID de usuário (Rick)
+const ID_CATEGORIA_TICKETS = "1489329885385326725"; // Opcional: ID da categoria onde os tickets serão criados
+
+// --- TABELA DE PREÇOS ---
 const produtos = [
-    { label: "💎 85 Diamantes", value: "p1", price: "4.50", description: "O mais barato!" },
-    { label: "💎 120 Diamantes", value: "p2", price: "6.50", description: "Recarga rápida" },
-    { label: "💎 372 Diamantes", value: "p3", price: "17.50", description: "Melhor custo" },
-    { label: "💎 624 Diamantes", value: "p4", price: "26.00", description: "Mais vendido" },
-    { label: "💎 1.272 Diamantes", value: "p5", price: "53.00", description: "Recarga Grande" },
-    { label: "📦 Assinatura Semanal", value: "p6", price: "13.50", description: "Vantagem Diária" },
-    { label: "📅 Assinatura Mensal", value: "p7", price: "46.00", description: "Economia máxima" }
+    { label: "💎 85 Diamantes", value: "p1", price: "3.50" },
+    { label: "💎 120 Diamantes", value: "p2", price: "t.50" },
+    { label: "💎 372 Diamantes", value: "p3", price: "14.50" },
+    { label: "💎 624 Diamantes", value: "p4", price: "25.00" },
+    { label: "📦 Passe Elite", value: "p6", price: "11.50" },
+    { label: "📦 Passe elite pass, value: "p7", price: "28.00" }
 ];
 
 client.on('ready', async () => {
-    console.log(`✅ BOT CONECTADO: ${client.user.tag}`);
-    
+    console.log(`✅ LOGADO COMO: ${client.user.tag}`);
     const commands = [
         { name: 'setup', description: 'Configura a vitrine de vendas' },
-        { name: 'tabela', description: 'Mostra apenas a tabela de preços' },
-        { name: 'ticket', description: 'Envia o sistema de suporte/compras' }
+        { name: 'ticket', description: 'Envia o sistema de atendimento' }
     ];
-
-    try {
-        await client.application.commands.set(commands);
-        console.log('✅ Comandos Slash registrados com sucesso!');
-    } catch (error) {
-        console.error('❌ Erro ao registrar comandos:', error);
-    }
+    await client.application.commands.set(commands);
 });
 
 client.on('interactionCreate', async (interaction) => {
-    try {
-        // --- COMANDOS SLASH ---
-        if (interaction.isChatInputCommand()) {
-            if (interaction.commandName === 'setup' || interaction.commandName === 'tabela') {
-                const embed = new EmbedBuilder()
-                    .setTitle('💎 TABELA DE RECARGAS - VALKYRIA FF')
-                    .setDescription('Escolha seus diamantes no menu abaixo.\n\n' + 
-                        produtos.map(p => `> **${p.label}** - \`R$ ${p.price}\``).join('\n'))
-                    .setColor('#facc15');
+    
+    // --- COMANDO SETUP / TABELA ---
+    if (interaction.isChatInputCommand() && interaction.commandName === 'setup') {
+        const embed = new EmbedBuilder()
+            .setTitle('💎 LOJA VALKYRIA - TABELA DE PREÇOS')
+            .setDescription('Confira nossos valores e selecione o que deseja comprar.\n\n' + 
+                produtos.map(p => `> **${p.label}** - \`R$ ${p.price}\``).join('\n'))
+            .setColor('#facc15');
 
-                const menu = new ActionRowBuilder().addComponents(
-                    new StringSelectMenuBuilder()
-                        .setCustomId('menu_compras')
-                        .setPlaceholder('🛒 Clique aqui para escolher...')
-                        .addOptions(produtos.map(p => ({ label: p.label, value: p.value, description: `R$ ${p.price}` })))
-                );
+        const menu = new ActionRowBuilder().addComponents(
+            new StringSelectMenuBuilder()
+                .setCustomId('menu_compras')
+                .setPlaceholder('🛒 Clique aqui para escolher um pacote...')
+                .addOptions(produtos.map(p => ({ label: p.label, value: p.value, description: `R$ ${p.price}` })))
+        );
 
-                return await interaction.reply({ embeds: [embed], components: [menu] });
-            }
+        await interaction.reply({ embeds: [embed], components: [menu] });
+    }
 
-            if (interaction.commandName === 'ticket') {
-                const embed = new EmbedBuilder()
-                    .setTitle('🎫 CENTRAL DE ATENDIMENTO')
-                    .setDescription('Clique no botão abaixo para abrir um ticket de suporte ou compra.')
-                    .setColor('#3B82F6');
+    // --- COMANDO TICKET (COM MENU DE ESCOLHA) ---
+    if (interaction.isChatInputCommand() && interaction.commandName === 'ticket') {
+        const embed = new EmbedBuilder()
+            .setTitle('🎫 CENTRAL DE ATENDIMENTO')
+            .setDescription('Como podemos te ajudar hoje?\n\n' +
+                '💰 **COMPRAS:** Para finalizar um pedido e enviar comprovante.\n' +
+                '🛠️ **SUPORTE:** Para dúvidas, erros ou problemas técnicos.')
+            .setColor('#3B82F6');
 
-                const row = new ActionRowBuilder().addComponents(
-                    new ButtonBuilder().setCustomId('abrir_ticket').setLabel('Abrir Ticket').setEmoji('📩').setStyle(ButtonStyle.Primary)
-                );
+        const menuTicket = new ActionRowBuilder().addComponents(
+            new StringSelectMenuBuilder()
+                .setCustomId('selecionar_tipo_ticket')
+                .setPlaceholder('Selecione o motivo do contato...')
+                .addOptions([
+                    { label: 'Finalizar Compra / Enviar PIX', value: 'ticket_compra', emoji: '💰' },
+                    { label: 'Suporte Técnico / Erros', value: 'ticket_suporte', emoji: '🛠️' },
+                    { label: 'Falar com o Rick (Admin)', value: 'ticket_admin', emoji: '👑' }
+                ])
+        );
 
-                return await interaction.reply({ embeds: [embed], components: [row] });
-            }
-        }
+        await interaction.reply({ embeds: [embed], components: [menuTicket] });
+    }
 
-        // --- MENU DE SELEÇÃO ---
-        if (interaction.isStringSelectMenu()) {
-            if (interaction.customId === 'menu_compras') {
-                const selecionado = produtos.find(p => p.value === interaction.values[0]);
-                return await interaction.reply({ 
-                    content: `✅ **${selecionado.label}** selecionado!\nValor: **R$ ${selecionado.price}**\n\nAbra um ticket para pagar via PIX.`, 
-                    ephemeral: true 
-                });
-            }
-        }
+    // --- LÓGICA DE CRIAÇÃO DO TICKET ---
+    if (interaction.isStringSelectMenu() && interaction.customId === 'selecionar_tipo_ticket') {
+        const tipo = interaction.values[0];
+        let nomeCanal = "";
+        let corEmbed = "";
+        let mencao = "";
 
-        // --- BOTÕES DE TICKET ---
-        if (interaction.isButton()) {
-            if (interaction.customId === 'abrir_ticket') {
-                // Criar o canal
-                const channel = await interaction.guild.channels.create({
-                    name: `ticket-${interaction.user.username}`,
-                    type: ChannelType.GuildText,
-                    permissionOverwrites: [
-                        { id: interaction.guild.id, deny: [PermissionFlagsBits.ViewChannel] },
-                        { id: interaction.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles] },
-                    ],
-                });
-
-                const embedWelcome = new EmbedBuilder()
-                    .setTitle('👋 Olá! Como podemos ajudar?')
-                    .setDescription(`Bem-vindo ao seu ticket, ${interaction.user}!\nEnvie o comprovante ou sua dúvida aqui.\n\nPara fechar, use o botão abaixo.`)
-                    .setColor('#22c55e');
-
-                const btnFechar = new ActionRowBuilder().addComponents(
-                    new ButtonBuilder().setCustomId('fechar_ticket').setLabel('Fechar Ticket').setEmoji('🔒').setStyle(ButtonStyle.Danger)
-                );
-
-                await channel.send({ embeds: [embedWelcome], components: [btnFechar] });
-                return await interaction.reply({ content: `✅ Ticket criado em ${channel}`, ephemeral: true });
-            }
-
-            if (interaction.customId === 'fechar_ticket') {
-                await interaction.reply('⚠️ Excluindo canal em 5 segundos...');
-                setTimeout(() => interaction.channel.delete().catch(() => {}), 5000);
-            }
-        }
-
-    } catch (err) {
-        console.error('❌ ERRO NA INTERAÇÃO:', err);
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: 'Houve um erro ao processar essa ação!', ephemeral: true }).catch(() => {});
+        if (tipo === 'ticket_compra') {
+            nomeCanal = `💰-compra-${interaction.user.username}`;
+            corEmbed = "#22c55e";
+            mencao = `<@&${ID_CARGO_SUPORTE}>`;
+        } else if (tipo === 'ticket_suporte') {
+            nomeCanal = `🛠️-suporte-${interaction.user.username}`;
+            corEmbed = "#3b82f6";
+            mencao = `<@&${ID_CARGO_SUPORTE}>`;
         } else {
-            await interaction.reply({ content: 'Houve um erro ao processar essa ação!', ephemeral: true }).catch(() => {});
+            nomeCanal = `👑-admin-${interaction.user.username}`;
+            corEmbed = "#a855f7";
+            mencao = `<@${ID_RICK_ADMIN}>`; // Marca você (Rick) diretamente
         }
+
+        const channel = await interaction.guild.channels.create({
+            name: nomeCanal,
+            parent: ID_CATEGORIA_TICKETS || null,
+            type: ChannelType.GuildText,
+            permissionOverwrites: [
+                { id: interaction.guild.id, deny: [PermissionFlagsBits.ViewChannel] },
+                { id: interaction.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles] },
+                { id: ID_CARGO_SUPORTE, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
+            ],
+        });
+
+        const embedTicket = new EmbedBuilder()
+            .setTitle(`Atendimento: ${interaction.user.username}`)
+            .setDescription(`Olá! Você abriu um ticket de **${tipo.replace('ticket_', '').toUpperCase()}**.\n\n` +
+                `Aguarde, ${mencao} irá te atender em breve.\n` +
+                `Já pode adiantar o assunto ou enviar o print do seu erro/pagamento.`)
+            .setColor(corEmbed);
+
+        const btnFechar = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('fechar_ticket').setLabel('Fechar Ticket').setEmoji('🔒').setStyle(ButtonStyle.Danger)
+        );
+
+        await channel.send({ content: `${mencao} | ${interaction.user}`, embeds: [embedTicket], components: [btnFechar] });
+        await interaction.reply({ content: `✅ Seu ticket foi aberto em ${channel}`, ephemeral: true });
+    }
+
+    // --- BOTÃO DE FECHAR TICKET ---
+    if (interaction.isButton() && interaction.customId === 'fechar_ticket') {
+        await interaction.reply('⚠️ O ticket será encerrado e deletado em 5 segundos...');
+        setTimeout(() => interaction.channel.delete().catch(() => {}), 5000);
     }
 });
 
-// Servidor obrigatório para o Render
 app.get('/', (req, res) => res.send('Bot da Loja Online!'));
-app.listen(3000, () => console.log('🌐 Servidor Web Rodando'));
-
+app.listen(3000);
 client.login(process.env.DISCORD_TOKEN);
