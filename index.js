@@ -11,11 +11,12 @@ const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
-// --- CONFIGURAÇÕES DA BIEL STORE (COLOQUE OS IDs AQUI!) ---
+// --- CONFIGURAÇÕES DA BIEL STORE (COLOQUE SEUS IDs AQUI!) ---
 const ID_CARGO_SUPORTE = "1482212414211756154";    // Cargo que atende
-const ID_BIEL_ADMIN = "1447297460635697202";            // Seu ID de usuário (Biel)
-const CAT_COMPRAS = "1489329885385326725";     // ID da categoria para Vendas
-const CAT_SUPORTE = "1489392329730297966";     // ID da categoria para Suporte
+const ID_BIEL_ADMIN = "1447297460635697202";            // Seu ID (Biel)
+const CAT_COMPRAS = "1489329885385326725";     // Categoria de Vendas
+const CAT_SUPORTE = "1489392329730297966";     // Categoria de Suporte
+const CHAVE_PIX = "SUA_CHAVE_PIX_AQUI";         // Sua chave PIX
 
 // --- TABELA DE PRODUTOS ---
 const produtos = [
@@ -39,11 +40,11 @@ client.on('ready', async () => {
 
 client.on('interactionCreate', async (interaction) => {
     try {
-        // --- COMANDO /SETUP (VITRINE) ---
+        // --- COMANDO /SETUP ---
         if (interaction.isChatInputCommand() && interaction.commandName === 'setup') {
             const embed = new EmbedBuilder()
                 .setTitle('🛒 BIEL STORE - RECARGAS FF')
-                .setDescription('Selecione os itens desejados no menu abaixo.\n\n' + 
+                .setDescription('Selecione os itens desejados no menu abaixo para iniciar a compra.\n\n' + 
                     produtos.map(p => `> **${p.label}** - \`R$ ${p.price}\``).join('\n'))
                 .setColor('#facc15')
                 .setThumbnail(interaction.guild.iconURL());
@@ -51,52 +52,40 @@ client.on('interactionCreate', async (interaction) => {
             const menu = new ActionRowBuilder().addComponents(
                 new StringSelectMenuBuilder()
                     .setCustomId('menu_compras')
-                    .setPlaceholder('🛒 Clique para escolher um produto...')
+                    .setPlaceholder('🛒 Clique para comprar um produto...')
                     .addOptions(produtos.map(p => ({ label: p.label, value: p.value, description: `Valor: R$ ${p.price}` })))
             );
 
             return await interaction.reply({ embeds: [embed], components: [menu] });
         }
 
-        // --- COMANDO /TICKET (ATENDIMENTO) ---
+        // --- COMANDO /TICKET ---
         if (interaction.isChatInputCommand() && interaction.commandName === 'ticket') {
             const embed = new EmbedBuilder()
-                .setTitle('🎫 CENTRAL DE ATENDIMENTO - BIEL STORE')
-                .setDescription('Como podemos te ajudar hoje?\n\n💰 **COMPRAS:** Finalizar pedido e enviar PIX.\n🛠️ **SUPORTE:** Dúvidas, Erros ou Reclamações.\n👑 **BIEL:** Falar diretamente com o dono.')
+                .setTitle('🎫 ATENDIMENTO - BIEL STORE')
+                .setDescription('Escolha uma opção abaixo:\n\n🛠️ **SUPORTE:** Dúvidas ou Erros.\n👑 **ADMIN:** Falar com o Biel.')
                 .setColor('#3B82F6');
 
             const menuTicket = new ActionRowBuilder().addComponents(
                 new StringSelectMenuBuilder()
                     .setCustomId('tipo_ticket')
-                    .setPlaceholder('Selecione o motivo do contato...')
+                    .setPlaceholder('Selecione o motivo...')
                     .addOptions([
-                        { label: 'Finalizar Compra / Enviar PIX', value: 'compras', emoji: '💰' },
-                        { label: 'Suporte Técnico / Erros', value: 'suporte', emoji: '🛠️' },
-                        { label: 'Falar com o Biel (Dono)', value: 'admin', emoji: '👑' }
+                        { label: 'Suporte Técnico', value: 'suporte', emoji: '🛠️' },
+                        { label: 'Falar com o Biel', value: 'admin', emoji: '👑' }
                     ])
             );
 
             return await interaction.reply({ embeds: [embed], components: [menuTicket] });
         }
 
-        // --- LÓGICA DE CRIAÇÃO DO TICKET POR CATEGORIA ---
-        if (interaction.isStringSelectMenu() && interaction.customId === 'tipo_ticket') {
-            const escolha = interaction.values[0];
-            let categoriaFinal = CAT_SUPORTE; // Padrão
-            let mencao = `<@&${ID_CARGO_SUPORTE}>`;
-            let prefixo = "🛠️-";
-
-            if (escolha === 'compras') {
-                categoriaFinal = CAT_COMPRAS;
-                prefixo = "💰-";
-            } else if (escolha === 'admin') {
-                mencao = `<@${ID_BIEL_ADMIN}>`;
-                prefixo = "👑-";
-            }
+        // --- LÓGICA: AO SELECIONAR UM PRODUTO (CRIA CANAL DE COMPRA) ---
+        if (interaction.isStringSelectMenu() && interaction.customId === 'menu_compras') {
+            const item = produtos.find(x => x.value === interaction.values[0]);
 
             const channel = await interaction.guild.channels.create({
-                name: `${prefixo}${interaction.user.username}`,
-                parent: categoriaFinal, // Coloca na categoria certa!
+                name: `🛒-${interaction.user.username}`,
+                parent: CAT_COMPRAS,
                 type: ChannelType.GuildText,
                 permissionOverwrites: [
                     { id: interaction.guild.id, deny: [PermissionFlagsBits.ViewChannel] },
@@ -105,35 +94,58 @@ client.on('interactionCreate', async (interaction) => {
                 ],
             });
 
-            const embedTicket = new EmbedBuilder()
-                .setTitle(`Atendimento Biel Store`)
-                .setDescription(`Olá ${interaction.user}! Você iniciou um atendimento de **${escolha.toUpperCase()}**.\n\nAguarde um instante, ${mencao} irá te responder.\n\n**Dica:** Já envie o ID do jogo e o comprovante se for compra!`)
-                .setColor('#22c55e');
+            const embedCompra = new EmbedBuilder()
+                .setTitle('🛒 NOVO PEDIDO - BIEL STORE')
+                .setDescription(`Olá ${interaction.user}!\nVocê escolheu: **${item.label}**\nValor total: **R$ ${item.price}**\n\n**Como pagar:**\nUse a chave PIX abaixo:\n\`${CHAVE_PIX}\`\n\nApós pagar, envie o **Comprovante**, seu **ID** e seu **Nick** aqui no chat.`)
+                .setColor('#22c55e')
+                .setFooter({ text: 'Aguarde um atendente após enviar o comprovante.' });
 
             const btnFechar = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('fechar_ticket').setLabel('Fechar Ticket').setEmoji('🔒').setStyle(ButtonStyle.Danger)
+                new ButtonBuilder().setCustomId('fechar_ticket').setLabel('Fechar Pedido').setEmoji('🔒').setStyle(ButtonStyle.Danger)
             );
 
-            await channel.send({ content: `${mencao} | ${interaction.user}`, embeds: [embedTicket], components: [btnFechar] });
+            await channel.send({ content: `<@&${ID_CARGO_SUPORTE}> | <@${ID_BIEL_ADMIN}> | ${interaction.user}`, embeds: [embedCompra], components: [btnFechar] });
             
             return await interaction.reply({ 
-                content: `✅ Seu ticket foi aberto em ${channel}`, 
+                content: `✅ Canal de compra criado: ${channel}`, 
                 flags: [MessageFlags.Ephemeral] 
             });
         }
 
-        // --- SELEÇÃO DE PRODUTO ---
-        if (interaction.isStringSelectMenu() && interaction.customId === 'menu_compras') {
-            const item = produtos.find(x => x.value === interaction.values[0]);
-            return await interaction.reply({ 
-                content: `✅ Você escolheu **${item.label}** por **R$ ${item.price}**.\nAbra um **Ticket de Compra** para pagar e receber!`, 
-                flags: [MessageFlags.Ephemeral] 
+        // --- LÓGICA: AO SELECIONAR SUPORTE/ADMIN ---
+        if (interaction.isStringSelectMenu() && interaction.customId === 'tipo_ticket') {
+            const escolha = interaction.values[0];
+            let mencao = `<@&${ID_CARGO_SUPORTE}>`;
+            if (escolha === 'admin') mencao = `<@${ID_BIEL_ADMIN}>`;
+
+            const channel = await interaction.guild.channels.create({
+                name: `🛠️-${interaction.user.username}`,
+                parent: CAT_SUPORTE,
+                type: ChannelType.GuildText,
+                permissionOverwrites: [
+                    { id: interaction.guild.id, deny: [PermissionFlagsBits.ViewChannel] },
+                    { id: interaction.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
+                    { id: ID_CARGO_SUPORTE, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
+                ],
             });
+
+            const embedSuporte = new EmbedBuilder()
+                .setTitle('🛠️ ATENDIMENTO - BIEL STORE')
+                .setDescription(`Olá ${interaction.user}, descreva sua dúvida ou problema.\nEquipe ${mencao} irá te ajudar.`)
+                .setColor('#3B82F6');
+
+            const btnFechar = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('fechar_ticket').setLabel('Fechar Ticket').setStyle(ButtonStyle.Danger)
+            );
+
+            await channel.send({ content: `${mencao} | ${interaction.user}`, embeds: [embedSuporte], components: [btnFechar] });
+            
+            return await interaction.reply({ content: `✅ Ticket aberto: ${channel}`, flags: [MessageFlags.Ephemeral] });
         }
 
-        // --- BOTÃO DE FECHAR TICKET ---
+        // --- BOTÃO DE FECHAR ---
         if (interaction.isButton() && interaction.customId === 'fechar_ticket') {
-            await interaction.reply('⚠️ Encerrando atendimento em 5 segundos...');
+            await interaction.reply('⚠️ Encerrando em 5 segundos...');
             setTimeout(() => interaction.channel.delete().catch(() => {}), 5000);
         }
 
@@ -142,6 +154,6 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-app.get('/', (req, res) => res.send('Biel Store Online!'));
+app.get('/', (req, res) => res.send('Biel Store Rodando!'));
 app.listen(3000);
 client.login(process.env.DISCORD_TOKEN);
