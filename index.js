@@ -12,8 +12,8 @@ const client = new Client({
 });
 
 // --- IDs DA SUA LOJA (Troque pelos seus!) ---
-const CATEGORIA_TICKETS = "ID_DA_CATEGORIA"; 
-const CARGO_SUPORTE = "ID_DO_CARGO_ADM"; 
+const CATEGORIA_TICKETS = "1489329885385326725"; 
+const CARGO_SUPORTE = "1482212414211756154"; 
 
 const PRODUTOS = [
     { label: "🎟️ Passe Booyah", value: "passe", price: "R$ 6,00", desc: "Entrega rápida" },
