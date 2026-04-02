@@ -12,10 +12,10 @@ const client = new Client({
 });
 
 // --- CONFIGURAÇÕES DA BIEL STORE (COLOQUE SEUS IDs AQUI!) ---
-const ID_CARGO_SUPORTE = "1482212414211756154";    // Cargo que atende
+const ID_CARGO_SUPORTE = "1488541167443382414";    // Cargo que atende
 const ID_BIEL_ADMIN = "1447297460635697202";            // Seu ID (Biel)
-const CAT_COMPRAS = "1489329885385326725";     // Categoria de Vendas
-const CAT_SUPORTE = "1489392329730297966";     // Categoria de Suporte
+const CAT_COMPRAS = "1489395360257282138";     // Categoria de Vendas
+const CAT_SUPORTE = "1489395552448942313";     // Categoria de Suporte
 const CHAVE_PIX = "SUA_CHAVE_PIX_AQUI";         // Sua chave PIX
 
 // --- TABELA DE PRODUTOS ---
