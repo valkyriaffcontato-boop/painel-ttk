@@ -1,12 +1,13 @@
 {
-  "name": "ttk-brasil",
+  "name": "loja-ff-render",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": { "start": "node index.js" },
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
+    "discord.js": "^14.17.3",
     "express": "^4.18.2",
-    "discord.js": "^14.14.1",
-    "@supabase/supabase-js": "^2.39.7",
-    "cors": "^2.8.5"
+    "dotenv": "^16.4.7"
   }
 }
