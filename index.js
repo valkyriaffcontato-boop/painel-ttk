@@ -16,7 +16,7 @@ const ID_CARGO_SUPORTE = "1488541167443382414";
 const ID_BIEL_ADMIN = "1447297460635697202";      
 const CAT_COMPRAS = "1489395360257282138";   
 const CAT_SUPORTE = "1489395552448942313";   
-const CHAVE_PIX_MANUAL = "eb3c66aa-c6f7-454c-833d-b6e66a2a7261
+const CHAVE_PIX_MANUAL = "eb3c66aa-c6f7-454c-833d-b6e66a2a7261"
 
     "; // Chave para o cliente ver no ticket
 const WHATSAPP_LINK = "https://wa.me/5533991160044"; // Seu link do zap
