@@ -1,13 +1,11 @@
 {
-  "name": "loja-ff-render",
+  "name": "ticket-bot-pro",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
+  "main": "src/index.js",
   "dependencies": {
-    "discord.js": "^14.17.3",
-    "express": "^4.18.2",
-    "dotenv": "^16.4.7"
+    "discord.js": "^14.13.0",
+    "dotenv": "^16.3.1",
+    "mongoose": "^7.5.0",
+    "express": "^4.18.2"
   }
 }
