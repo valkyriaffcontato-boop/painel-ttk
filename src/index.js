@@ -1,14 +1,9 @@
 require('dotenv').config();
-const { 
-    Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, 
-    ButtonBuilder, ButtonStyle, SlashCommandBuilder, 
-    PermissionFlagsBits, ChannelType, StringSelectMenuBuilder 
-} = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, PermissionFlagsBits, ChannelType, StringSelectMenuBuilder } = require('discord.js');
 const express = require('express');
 const JSONDatabase = require('easy-json-database');
 const db = new JSONDatabase('./database.json');
 
-// Inicialização do Bot com Intents completas
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds, 
@@ -18,13 +13,16 @@ const client = new Client({
     ]
 });
 
-// Servidor Web para o Render
 const app = express();
 app.get('/', (req, res) => res.send('Bot Status: Online ✅'));
-app.listen(process.env.PORT || 3000, () => console.log("🟢 Servidor Web Iniciado."));
+app.listen(process.env.PORT || 3000, () => console.log("🟢 [WEB] Servidor Express rodando."));
+
+// Monitor de Erros Globais
+client.on('error', (err) => console.error("❌ [DISCORD ERROR]:", err));
+process.on('unhandledRejection', (reason, p) => console.error("❌ [UNHANDLED REJECTION]:", reason));
 
 client.once('ready', async () => {
-    console.log(`✅ SUCESSO: Logado como ${client.user.tag}`);
+    console.log(`✅ [LOGIN] Sucesso! Bot: ${client.user.tag}`);
     
     const commands = [
         new SlashCommandBuilder()
@@ -32,77 +30,74 @@ client.once('ready', async () => {
             .setDescription('Configura o sistema de suporte')
             .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
             .addRoleOption(opt => opt.setName('cargo_suporte').setDescription('Cargo que atende os tickets').setRequired(true))
-            .addChannelOption(opt => opt.setName('categoria').setDescription('Categoria onde os tickets serão criados').addChannelTypes(ChannelType.GuildCategory).setRequired(true))
-            .addChannelOption(opt => opt.setName('logs').setDescription('Canal onde os logs serão enviados').addChannelTypes(ChannelType.GuildText).setRequired(true)),
+            .addChannelOption(opt => opt.setName('categoria').setDescription('Categoria dos tickets').addChannelTypes(ChannelType.GuildCategory).setRequired(true))
+            .addChannelOption(opt => opt.setName('logs').setDescription('Canal de logs').addChannelTypes(ChannelType.GuildText).setRequired(true)),
 
         new SlashCommandBuilder()
             .setName('ticketchannel')
-            .setDescription('Envia a mensagem inicial de suporte')
-            .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+            .setDescription('Envia o painel de suporte')
             .addStringOption(opt => opt.setName('titulo').setDescription('Título do painel').setRequired(true))
-            .addStringOption(opt => opt.setName('descricao').setDescription('Descrição do suporte').setRequired(true))
+            .addStringOption(opt => opt.setName('descricao').setDescription('Descrição').setRequired(true))
     ];
 
     try {
-        console.log("⏳ Registrando comandos Slash...");
+        console.log("⏳ [SLASH] Registrando comandos...");
         await client.application.commands.set(commands);
-        console.log("🚀 Comandos Slash registrados com sucesso!");
+        console.log("🚀 [SLASH] Comandos prontos para uso.");
     } catch (error) {
-        console.error("❌ Erro ao registrar comandos:", error);
+        console.error("❌ [SLASH ERROR]:", error);
     }
 });
 
-// --- LÓGICA DE INTERAÇÃO (Botões e Menus) ---
+// Lógica simplificada para teste inicial
 client.on('interactionCreate', async (interaction) => {
-    if (interaction.isChatInputCommand()) {
-        const { commandName, options, guildId } = interaction;
+    if (!interaction.isChatInputCommand()) return;
 
-        if (commandName === 'config') {
-            const role = options.getRole('cargo_suporte');
-            const category = options.getChannel('categoria');
-            const logs = options.getChannel('logs');
-            db.set(`config_${guildId}`, { supportRole: role.id, categoryId: category.id, logsId: logs.id });
-            return interaction.reply({ content: '✅ Configuração salva!', ephemeral: true });
-        }
+    if (interaction.commandName === 'config') {
+        const role = interaction.options.getRole('cargo_suporte');
+        const category = interaction.options.getChannel('categoria');
+        const logs = interaction.options.getChannel('logs');
 
-        if (commandName === 'ticketchannel') {
-            const titulo = options.getString('titulo');
-            const desc = options.getString('descricao');
-            const embed = new EmbedBuilder().setTitle(titulo).setDescription(desc).setColor('#5865F2');
-            const menu = new ActionRowBuilder().addComponents(
-                new StringSelectMenuBuilder().setCustomId('abrir_ticket').setPlaceholder('Escolha uma categoria')
-                .addOptions([
-                    { label: 'Suporte Geral', value: 'Geral', emoji: '🛠️' },
-                    { label: 'Financeiro', value: 'Financeiro', emoji: '💰' },
-                    { label: 'Denúncias', value: 'Denúncia', emoji: '⚠️' }
-                ])
-            );
-            await interaction.channel.send({ embeds: [embed], components: [menu] });
-            return interaction.reply({ content: 'Painel enviado!', ephemeral: true });
-        }
+        db.set(`config_${interaction.guildId}`, { 
+            supportRole: role.id, 
+            categoryId: category.id, 
+            logsId: logs.id 
+        });
+
+        await interaction.reply({ content: `✅ Configurado!\nCargo: ${role.name}\nCategoria: ${category.name}`, ephemeral: true });
     }
 
-    if (interaction.isStringSelectMenu() && interaction.customId === 'abrir_ticket') {
-        const config = db.get(`config_${interaction.guildId}`);
-        if (!config) return interaction.reply({ content: "⚠️ Use /config primeiro.", ephemeral: true });
-        
-        const channel = await interaction.guild.channels.create({
-            name: `ticket-${interaction.values[0]}-${interaction.user.username}`,
-            type: ChannelType.GuildText,
-            parent: config.categoryId,
-            permissionOverwrites: [
-                { id: interaction.guild.id, deny: [PermissionFlagsBits.ViewChannel] },
-                { id: interaction.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] },
-                { id: config.supportRole, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages] }
-            ]
-        });
-        interaction.reply({ content: `✅ Ticket aberto: ${channel}`, ephemeral: true });
+    if (interaction.commandName === 'ticketchannel') {
+        const titulo = interaction.options.getString('titulo');
+        const desc = interaction.options.getString('descricao');
+
+        const embed = new EmbedBuilder()
+            .setTitle(titulo)
+            .setDescription(desc)
+            .setColor('Blue');
+
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('abrir_geral').setLabel('Abrir Ticket').setStyle(ButtonStyle.Primary).setEmoji('📩')
+        );
+
+        await interaction.channel.send({ embeds: [embed], components: [row] });
+        await interaction.reply({ content: 'Painel enviado!', ephemeral: true });
     }
 });
 
-// Verificação de Erro de Login
-console.log("⏳ Tentando conectar ao Discord...");
+// LOG DE TENTATIVA DE LOGIN
+console.log("⏳ [AUTH] Tentando conectar ao Discord...");
+if (!process.env.TOKEN) {
+    console.error("❌ [AUTH] TOKEN não encontrado nas variáveis do Render!");
+} else {
+    console.log(`🔍 [AUTH] Token detectado (Inicia com: ${process.env.TOKEN.substring(0, 10)}...)`);
+}
+
 client.login(process.env.TOKEN).catch(err => {
-    console.error("❌ ERRO NO LOGIN:");
-    console.error(err);
+    console.error("❌ [AUTH ERROR] Falha ao logar:");
+    if (err.message.includes("Privileged intents")) {
+        console.error("👉 ERRO: Você esqueceu de ligar as INTENTS no Developer Portal!");
+    } else {
+        console.error(err);
+    }
 });
